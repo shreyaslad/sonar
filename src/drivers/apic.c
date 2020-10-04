@@ -17,7 +17,9 @@ struct ioapic_redir_entry_t {
     uint8_t destination;
 } __attribute__((packed));
 
-static volatile const uint64_t ia32_apic_base = 0x1b;
+#define IA32_APIC_BASE      0x1b
+#define IA32_APIC_BASE_BSP  0x100
+#define IA32_APIC_ENABLE    0x800
 
 uint32_t lapic_read(uint16_t offset) {
     uint32_t* volatile lapic_addr = (uint32_t* volatile)(madt->l_paddr + offset);
@@ -125,15 +127,19 @@ void init_apic() {
     outb(0xA1, 0xFF);
     outb(0x21, 0xFF);
 
-    wrmsr(ia32_apic_base, ~(1 << 10));
-    wrmsr(ia32_apic_base, (1 << 11));
+    // set LAPIC enable
+    wrmsr(IA32_APIC_BASE, (rdmsr(IA32_APIC_BASE) | IA32_APIC_ENABLE) & ~(1 << 10));
+
+    // enable spurious interrupts
+    lapic_write(0xf0, lapic_read(0xf0) | (1 << 11));
 
     asm volatile("mov %0, %%cr8" :: "r"(0ULL));
 
     lapic_write(LAPIC_REG_SPUR_INTR, lapic_read(LAPIC_REG_SPUR_INTR) | 0x100);
 
-    if (rdmsr(ia32_apic_base) & (1 << 11))
+    if (rdmsr(IA32_APIC_BASE) & (1 << 11)) {
         TRACE("Initialized\n");
+    }
 
     uint32_t* volatile lapic_base = (uint32_t* volatile)madt->l_paddr;
 }

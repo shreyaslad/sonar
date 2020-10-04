@@ -8,6 +8,6 @@
 #undef __MODULE__
 #define __MODULE__ "vmx"
 
-int has_vmx();
+void init_vmx();
 
 #endif

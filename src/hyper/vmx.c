@@ -7,3 +7,12 @@ int has_vmx() {
 
     return ecx & 1;
 }
+
+void init_vmx() {
+    if (!has_vmx()) {
+        ERR("CPU does not support VMX!");
+        return;
+    }
+
+    TRACE("CPU supports VMX\n");
+}

@@ -5,6 +5,7 @@
 #include <mem.h>
 #include <acpi/acpi.h>
 #include <drivers/apic.h>
+#include <hyper/vmx.h>
 
 __attribute__((noreturn))
 void sonar_main(struct stivale2_struct* info) {
@@ -36,6 +37,8 @@ void sonar_main(struct stivale2_struct* info) {
 
     init_acpi(rsdp->rsdp + HIGH_VMA);
     init_apic();
+
+    init_vmx();
 
     // load slate
     // initialize virtualization

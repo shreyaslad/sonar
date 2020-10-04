@@ -70,7 +70,7 @@ all: ci run
 ci: clean SONAR_IMG_TARGET
 
 run:
-	qemu-system-x86_64 ${QEMUFLAGS} -serial stdio | tee "${LOG}"
+	qemu-system-x86_64 ${QEMUFLAGS} -serial stdio -cpu host -enable-kvm | tee "${LOG}"
 
 debug: ci
 	qemu-system-x86_64 ${QEMUFLAGS} -monitor stdio -d int -no-shutdown -no-reboot | tee "${LOG}"
