@@ -25,41 +25,45 @@ SONAR_MNT_TARGET = ${BUILD_DIR}/sonar_image
 
 LOG = ${BUILD_DIR}/dump.log
 
-CFLAGS =	-target ${ARCH}-unknown-none \
-			-ggdb \
-			-nostdlib \
-			-fno-stack-protector \
-			-nostartfiles \
-			-nodefaultlibs \
-			-Wall \
-			-Wextra	\
-			-Wpedantic \
-			-ffreestanding \
-			-std=gnu11 \
-			-mcmodel=kernel	\
-			-I${SRC_DIR} \
-			-I${SRC_DIR}/lib \
-			-fno-pic \
-			-mno-red-zone \
-			-mno-sse \
-			-mno-sse2 \
-			#-fsanitize=undefined \
+CFLAGS = \
+		-target ${ARCH}-unknown-none \
+		-ggdb \
+		-nostdlib \
+		-fno-stack-protector \
+		-nostartfiles \
+		-nodefaultlibs \
+		-Wall \
+		-Wextra	\
+		-Wpedantic \
+		-ffreestanding \
+		-std=gnu11 \
+		-mcmodel=kernel	\
+		-I${SRC_DIR} \
+		-I${SRC_DIR}/lib \
+		-fno-pic \
+		-mno-red-zone \
+		-mno-sse \
+		-mno-sse2 \
+		#-fsanitize=undefined \
 
-QEMUFLAGS =	-m 3G \
-			-boot menu=on \
-			-hda ${SONAR_IMG_TARGET} \
-			-smp cpus=4	\
-			-machine q35 \
-			-name slate	\
+QEMUFLAGS =	\
+		-m 3G \
+		-boot menu=on \
+		-hda ${SONAR_IMG_TARGET} \
+		-smp cpus=4	\
+		-machine q35 \
+		-name slate	\
 
-O_LEVEL =	2
+O_LEVEL = \
+		2
 
-LDFLAGS =	-no-pie	\
-			-ffreestanding \
-			-O${O_LEVEL} \
-			-nostdlib \
-			-z max-page-size=0x1000 \
-			-T ${SRC_DIR}/boot/linker.ld \
+LDFLAGS = \
+		-no-pie	\
+		-ffreestanding \
+		-O${O_LEVEL} \
+		-nostdlib \
+		-z max-page-size=0x1000 \
+		-T ${SRC_DIR}/boot/linker.ld \
 
 all: ci run
 
@@ -79,7 +83,7 @@ SONAR_IMG_TARGET: SLATE_KNL_TARGET
 	parted -s ${SONAR_IMG_TARGET} mkpart primary 1 100%
 	make $(FS)
 	sudo ${SRC_DIR}/boot/limine-install ${SRC_DIR}/boot/limine.bin ${SONAR_IMG_TARGET}
-	mv **/*.o ${BUILD_DIR}/objects
+	find . -type f -name '*.o' -exec mv {} ${BUILD_DIR}/objects \;
 
 SLATE_KNL_TARGET:
 	git clone https://github.com/0xqoob/slate ${BUILD_DIR}/slate

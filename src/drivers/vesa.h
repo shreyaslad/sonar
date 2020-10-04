@@ -8,7 +8,6 @@
 #include <mem.h>
 #include <mm/vmm.h>
 #include <bit.h>
-#include <bitmap_font.h>
 
 #undef __MODULE__
 #define __MODULE__ "vesa"

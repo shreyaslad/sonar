@@ -129,6 +129,7 @@ typedef struct {
 
 void _putchar(char c) {
     put(c);
+    serial_write(c);
 } 
 
 // internal buffer output
