@@ -139,6 +139,8 @@ void init_apic() {
 
     if (rdmsr(IA32_APIC_BASE) & (1 << 11)) {
         TRACE("Initialized\n");
+    } else {
+        ERR("Not Properly Initialized!\n");
     }
 
     uint32_t* volatile lapic_base = (uint32_t* volatile)madt->l_paddr;
