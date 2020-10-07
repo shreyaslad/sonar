@@ -45,7 +45,6 @@ CFLAGS = \
 		-mno-sse \
 		-mno-sse2 \
 		-fasm-blocks \
-		-flto \
 		#-fsanitize=undefined \
 
 QEMUFLAGS =	\

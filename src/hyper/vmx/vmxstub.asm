@@ -13,15 +13,15 @@ vmwrite:
     vmwrite rdi, rsi
     ret
 
-[extern vmm_exit_handler]
+[extern vmx_exit]
 
 %include "src/sys/regs.asm"
 
-vmm_exit_stub:
+vmx_exit_stub:
     cli
     pushaq
 
-    call vmm_exit_handler
+    call vmx_exit
 
     popaq
     sti
