@@ -114,7 +114,7 @@ static uint32_t has_vmx() {
 
 int init_vmx() {
     if (!has_vmx()) {
-        ERR("cpu does not support cmx!");
+        ERR("cpu does not support vmx!");
         return 0;
     }
 
