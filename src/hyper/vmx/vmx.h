@@ -22,6 +22,13 @@
 #define VM_E_INS_LEN        0b110
 #define VM_E_INS_INFO       0b111
 
+/* Instruction Wrappers */
+
+int vmptrld(uint64_t vmcs);
+int vmclear(uint64_t vmcs);
+int vmwrite(uint64_t encoding, uint64_t value);
+uint64_t vmread(uint64_t encoding);
+
 int init_vmx();
 
 #endif

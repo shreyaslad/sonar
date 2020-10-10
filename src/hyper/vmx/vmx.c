@@ -1,15 +1,6 @@
 #include <hyper/vmx/vmx.h>
 
-static
-uint32_t has_vmx() {
-    uint32_t eax = (1 << 5);
-    uint32_t ecx, unused;
-    __get_cpuid(1, &eax, &unused, &ecx, &unused);
-
-    return ecx & 1;
-}
-
-static inline int vmptrld(uint64_t vmcs) {
+int vmptrld(uint64_t vmcs) {
     uint8_t ret;
     asm volatile (
         "vmptrld %[pa];"
@@ -20,7 +11,7 @@ static inline int vmptrld(uint64_t vmcs) {
     return ret;
 }
 
-static inline int vmclear(uint64_t vmcs) {
+int vmclear(uint64_t vmcs) {
     uint8_t ret;
     asm volatile (
         "vmclear %[pa];"
@@ -31,7 +22,7 @@ static inline int vmclear(uint64_t vmcs) {
     return ret;
 }
 
-static inline int vmwrite(uint64_t encoding, uint64_t value) {
+int vmwrite(uint64_t encoding, uint64_t value) {
     uint8_t ret;
     asm volatile (
         "vmwrite %1, %2;"
@@ -43,7 +34,7 @@ static inline int vmwrite(uint64_t encoding, uint64_t value) {
     return ret;
 }
 
-static inline uint64_t vmread(uint64_t encoding) {
+uint64_t vmread(uint64_t encoding) {
     uint64_t tmp;
     uint8_t ret;
     asm volatile(
@@ -105,8 +96,16 @@ static void vmxon() {
         ERR("vmxon operation failed!\n");
         asm volatile(
             "cli\n\t"
-            "hlt\n");
+            "hlt\n\t");
     }
+}
+
+static uint32_t has_vmx() {
+    uint32_t eax = (1 << 5);
+    uint32_t ecx, unused;
+    __get_cpuid(1, &eax, &unused, &ecx, &unused);
+
+    return ecx & 1;
 }
 
 int init_vmx() {
