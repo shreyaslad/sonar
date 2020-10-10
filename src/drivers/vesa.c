@@ -215,5 +215,5 @@ void init_vesa(struct stivale2_struct_tag_framebuffer* fb) {
 
     clear_screen(NULL);
 
-    TRACE("Found a %lux%lu display\n", fb->framebuffer_width, fb->framebuffer_height);
+    TRACE("found a %lux%lu display\n", fb->framebuffer_width, fb->framebuffer_height);
 }

@@ -137,11 +137,12 @@ void init_apic() {
 
     lapic_write(LAPIC_REG_SPUR_INTR, lapic_read(LAPIC_REG_SPUR_INTR) | 0x100);
 
-    if (rdmsr(IA32_APIC_BASE) & (1 << 11)) {
-        TRACE("Initialized\n");
-    } else {
-        ERR("Not Properly Initialized!\n");
+    if (!(rdmsr(IA32_APIC_BASE) & (1 << 11))) {
+        ERR("not properly initialized!\n");
+        asm volatile(
+            "cli\n\t"
+            "hlt\n");
     }
 
-    uint32_t* volatile lapic_base = (uint32_t* volatile)madt->l_paddr;
+    //uint32_t* volatile lapic_base = (uint32_t* volatile)madt->l_paddr;
 }

@@ -1,7 +1,7 @@
 #include <sys/smp.h>
 
 void init_smp(struct stivale2_struct_tag_smp* smp) {
-    TRACE("Parsing SMP Information\n");
+    TRACE("parsing SMP information\n");
     TRACE("\t%-10s %-10s %-18s %-18s\n",
             "CPU ID",
             "LAPIC ID",

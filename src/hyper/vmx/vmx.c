@@ -61,7 +61,7 @@ static void vmxon() {
     memset(vmxon_region + HIGH_VMA, 0, PAGESIZE);
     size_t control = rdmsr(MSR_CODE_IA32_FEATURE_CONTROL);
 
-    if ((MSR_CODE_IA32_FEATURE_CONTROL & (0x1 | 0x4)) != (0x1 | 0x4)) {
+    if ((control & (0x1 | 0x4)) != (0x1 | 0x4)) {
         wrmsr(MSR_CODE_IA32_FEATURE_CONTROL, control | 0x1 | 0x4);
     }
 
@@ -95,14 +95,14 @@ static void vmxon() {
                  "movq $0, %%rax\n"
                  "success:\n\t"
                  "movq $1, %%rax\n\t"
-                 : "=d"(successful)
+                 : "=a"(successful)
                  : "m"(vmxon_region)
                  : "memory", "cc");
 
     if (successful) {
         TRACE("entered vmxon operation\n");
     } else {
-        ERR("vmxon operation failed\n");
+        ERR("vmxon operation failed!\n");
         asm volatile(
             "cli\n\t"
             "hlt\n");
