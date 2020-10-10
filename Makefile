@@ -53,7 +53,7 @@ QEMUFLAGS =	\
 		-hda ${SONAR_IMG_TARGET} \
 		-smp cpus=4	\
 		-machine q35 \
-		-name slate	\
+		-name sonar	\
 
 O_LEVEL = \
 		2
@@ -71,10 +71,11 @@ all: ci run
 ci: clean SONAR_IMG_TARGET
 
 run:
-	qemu-system-x86_64 ${QEMUFLAGS} -serial stdio -cpu host -enable-kvm | tee "${LOG}"
+	qemu-system-x86_64 ${QEMUFLAGS} -serial stdio --enable-kvm -cpu qemu64,+vmx | tee "${LOG}"
 
 debug: ci
-	qemu-system-x86_64 ${QEMUFLAGS} -monitor stdio -d int -no-shutdown -no-reboot | tee "${LOG}"
+	qemu-system-x86_64 ${QEMUFLAGS} -s -S -no-shutdown -no-reboot
+	gdb -ex "target remote localhost:1234" -ex "symbol-file build/ksonar.elf"
 
 SONAR_IMG_TARGET: SLATE_KNL_TARGET
 	mkdir ${BUILD_DIR}/objects

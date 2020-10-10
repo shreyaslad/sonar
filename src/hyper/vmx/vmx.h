@@ -2,7 +2,10 @@
 #define __HYPER__VMX_H__
 
 #include <stdint.h>
+#include <alloc.h>
 #include <cpuid.h>
+#include <mem.h>
+#include <sys/msrs.h>
 #include <trace.h>
 
 #undef __MODULE__
@@ -18,9 +21,6 @@
 #define VM_E_IDT_VEC_CODE   0b101
 #define VM_E_INS_LEN        0b110
 #define VM_E_INS_INFO       0b111
-
-extern uint64_t vmread(uint64_t field);
-extern void vmwrite(uint64_t field, uint64_t* data);
 
 int init_vmx();
 

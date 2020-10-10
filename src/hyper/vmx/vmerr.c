@@ -41,7 +41,7 @@
 #define VCMS_EXIT_PAUSE     39
 #define VCMS_EXIT_MCHCK     40  // machine check
 #define VCMS_EXIT_TPRBT     43  // TPR below threshold
-#define VCMS_EXIT_APICACCES 44
+#define VCMS_EXIT_APICACCSS 44
 #define VCMS_EXIT_VIRT_EOI  45
 #define VCMS_EXIT_GITDR     46  // GDTR or GDTR access
 #define VCMS_EXIT_TR        47  // LDTR or TR access

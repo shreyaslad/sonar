@@ -11,7 +11,7 @@
 #endif
 
 #define PRN(stat, fmt, ...) \
-    printf(stat " %-5s: " fmt, __MODULE__, ## __VA_ARGS__)
+    printf(stat " %-5s: " fmt, __MODULE__, ## __VA_ARGS__);
 
 #define TRACE(fmt, ...) PRN("[*]", fmt, ## __VA_ARGS__)
 #define WARN(fmt, ...)  PRN("[-]", fmt, ## __VA_ARGS__)

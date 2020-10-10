@@ -1,21 +1,11 @@
 [global vmread]
 [global vmwrite]
 
-vmxon:
-    ; stub
-    ret
-
-vmread:
-    vmread rdi, rax
-    ret
-
-vmwrite:
-    vmwrite rdi, rsi
-    ret
-
 [extern vmx_exit]
 
 %include "src/sys/regs.asm"
+
+section .text
 
 vmx_exit_stub:
     cli
