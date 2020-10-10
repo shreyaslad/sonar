@@ -47,7 +47,11 @@ uint64_t vmread(uint64_t encoding) {
     return tmp;
 }
 
-static void vmxon() {
+static int init_vmcs() {
+    
+}
+
+static int vmxon() {
     void* vmxon_region = kmalloc(PAGESIZE);
     memset(vmxon_region + HIGH_VMA, 0, PAGESIZE);
     size_t control = rdmsr(MSR_CODE_IA32_FEATURE_CONTROL);
@@ -94,10 +98,10 @@ static void vmxon() {
         TRACE("entered vmxon operation\n");
     } else {
         ERR("vmxon operation failed!\n");
-        asm volatile(
-            "cli\n\t"
-            "hlt\n\t");
+        return 0;
     }
+
+    return 1;
 }
 
 static uint32_t has_vmx() {
@@ -110,18 +114,23 @@ static uint32_t has_vmx() {
 
 int init_vmx() {
     if (!has_vmx()) {
-        ERR("CPU does not support VMX!");
+        ERR("cpu does not support cmx!");
         return 0;
     }
 
-    TRACE("CPU supports VMX\n");
+    TRACE("cpu supports vmx\n");
 
     // set CR4.VMXE
     asm volatile("movq %cr4, %rax\n\t"
                  "orq (1 << 13), %rax\n\t"
                  "movq %rax, %cr4\n\t");
 
-    vmxon();
+    if (!vmxon()) {
+        goto error;
+    }
 
     return 1;
+
+    error:
+        return 0;
 }

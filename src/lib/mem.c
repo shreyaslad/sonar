@@ -55,25 +55,25 @@ void init_mem(struct stivale2_struct_tag_memmap* memmap) {
 
         switch (entry[i].type) {
             case STIVALE2_MMAP_USABLE:
-                printf("Usable\n");
+                printf("usable\n");
                 break;
             case STIVALE2_MMAP_RESERVED:
-                printf("Reserved\n");
+                printf("reserved\n");
                 break;
             case STIVALE2_MMAP_ACPI_RECLAIMABLE:
-                printf("ACPI Reclaimable\n");
+                printf("acpi reclaimable\n");
                 break;
             case STIVALE2_MMAP_ACPI_NVS:
-                printf("NVS\n");
+                printf("nvs\n");
                 break;
             case STIVALE2_MMAP_BAD_MEMORY:
-                printf("Bad RAM\n");
+                printf("bad ram\n");
                 break;
             case STIVALE2_MMAP_BOOTLOADER_RECLAIMABLE:
-                printf("Limine Reclaimable\n");
+                printf("limine reclaimable\n");
                 break;
             case STIVALE2_MMAP_KERNEL_AND_MODULES:
-                printf("Kernel/Modules\n");
+                printf("kernel/modules\n");
                 break;
         }
 

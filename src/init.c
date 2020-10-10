@@ -45,5 +45,6 @@ void sonar_main(struct stivale2_struct* info) {
     }
 
     spin:
-        for (;;);
+        asm volatile("cli\n\t"
+                     "hlt\n\t");
 }
