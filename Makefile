@@ -46,7 +46,7 @@ CFLAGS = \
 		-mno-sse2 \
 		-fasm-blocks \
 		#-fsanitize=undefined \
-
+		
 QEMUFLAGS =	\
 		-m 3G \
 		-boot menu=on \
