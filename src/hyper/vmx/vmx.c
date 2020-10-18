@@ -85,14 +85,15 @@ static int vmxon() {
     uint32_t vmx_rev = rdmsr(MSR_CODE_IA32_VMX_BASIC);
 
     uint8_t successful;
-    asm volatile("vmxon %1\n\t"
-                 "jnc success\n\t"
-                 "movq $0, %%rax\n"
-                 "success:\n\t"
-                 "movq $1, %%rax\n\t"
-                 : "=a"(successful)
-                 : "m"(vmxon_region)
-                 : "memory", "cc");
+    asm volatile(
+        "vmxon %1\n\t"
+        "jnc success\n\t"
+        "movq $0, %%rax\n"
+        "success:\n\t"
+        "movq $1, %%rax\n\t"
+        : "=a"(successful)
+        : "m"(vmxon_region)
+        : "memory", "cc");
 
     if (successful) {
         TRACE("entered vmxon operation\n");
