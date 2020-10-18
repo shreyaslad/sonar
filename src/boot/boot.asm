@@ -98,6 +98,10 @@ section .text
 		mov gs, ax
 		mov fs, ax
 
+		mov rax, cr4
+		or rax, (1 << 13) ; set CR4.VMXE
+		mov cr4, rax
+
 		call sonar_main
 
 		jmp $

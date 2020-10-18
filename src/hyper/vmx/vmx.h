@@ -7,6 +7,7 @@
 #include <mem.h>
 #include <sys/msrs.h>
 #include <trace.h>
+#include <mm/pmm.h>
 
 #undef __MODULE__
 #define __MODULE__ "vmx"
