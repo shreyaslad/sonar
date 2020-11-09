@@ -2,3 +2,5 @@ build/
 **/*.o
 sonar.img
 src/sys/symlist.gen
+.vscode-ctags
+.vscode
