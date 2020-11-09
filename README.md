@@ -27,7 +27,7 @@ The tree below outlines an example structure of the build directory, which conta
         ...
 ```
 
-Each node in the tree is a directory. For the `sonar` and `test` subprojects, the 
+Each node in the tree is a directory. For the `sonar` and `test` subprojects, the root folder contains the final executables and/or images while the `objects` folder contains the compiled object files.
 
 ### Build Instructions
 
@@ -39,7 +39,7 @@ There are two possible methods for building:
 
 This approach lets one create a full hard drive image, complete with sonar, the limine bootloader, and a test kernel. One can simply copy this image to a drives (flash drive, hard drive, etc) and then boot off this medium. 
 
-Once the image (`sonar.img`) has been created, one can mount it and add/remove files and tweak the limine configuration to suit specific needs. The `sonar.img` image is generated like so: 
+Once the image (`sonar.img`) has been created, one can mount it then add/remove files and tweak the limine configuration to suit specific needs. The `sonar.img` file is generated like so: 
 
 ```
 make limine
@@ -56,12 +56,19 @@ make sonar-kernel
 
 The above command will compile a file called `ksonar.elf` in the sonar build directory, which can then be distributed.
 
+In addition, one can easily rebuild the test kernel only by executing the `test-kernel` rule. This will compile a file called `ktest.elf` in the test kernel build directory, which can then be copied into a hard disk image and loaded by sonar.
+
+```
+make test-kernel
+```
+
 ### Cleaning Up
 
 If, for whatever reason, the codebase needs to be rebuilt, it's often a better idea to only rebuilt the parts that need to be. Because of this, four rules are provided to clean subprojects and dispose of remaining object files. They are as follows:
 
 ```
 make clean-all
+
 make clean-sonar
 make clean-test
 make clean-limine
