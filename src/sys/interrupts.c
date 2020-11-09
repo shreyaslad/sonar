@@ -8,7 +8,7 @@ struct idt_entry {
     uint16_t offset_mid;
     uint32_t offset_hi;
     uint32_t zero_32;
-} __attribute((packed));
+} __attribute__((packed));
 
 struct idt_reg {
     uint16_t limit;

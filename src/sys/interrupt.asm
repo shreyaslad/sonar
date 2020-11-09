@@ -18,7 +18,7 @@ isr%1:
     jmp isr_common
 %endmacro
 
-%include "src/sys/regs.asm"
+%include "sys/regs.asm"
 
 section .text
 

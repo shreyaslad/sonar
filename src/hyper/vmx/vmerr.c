@@ -66,26 +66,6 @@
 #define VCMS_EXIT_UMWAIT    67
 #define VCMS_EXIT_TPAUSE    68
 
-struct vmcs_exit_t {
-    uint16_t e_reason;
-    uint8_t zero: 1;
-    uint8_t undefined1;
-    uint8_t svm: 1;
-    uint8_t pending_mtf_vm_exit: 1;
-    uint8_t e_root_op: 1;
-    uint8_t undefined2: 1;
-    uint8_t e_entry: 1;
-} __attribute__((packed));
-
-struct vmcs_vecinf_t {
-    uint8_t vec;
-    uint8_t type: 3;
-    uint8_t e_code_valid: 1;
-    uint8_t nmi_unblocking: 1;
-    uint32_t undefined: 28;
-    uint8_t valid: 1;
-} __attribute__((packed));
-
 void vmx_exit() {
     ;
 }

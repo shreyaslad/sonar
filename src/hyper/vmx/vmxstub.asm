@@ -3,7 +3,7 @@
 
 [extern vmx_exit]
 
-%include "src/sys/regs.asm"
+%include "sys/regs.asm"
 
 section .text
 
