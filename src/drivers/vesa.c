@@ -6,7 +6,7 @@ struct stivale2_struct_tag_framebuffer* fb_info;
 #define GREEN_SHIFT 8
 #define BLUE_SHIFT  0
 
-struct color_t bg = {52, 84, 94};
+struct color_t bg = {35, 35, 35};
 struct color_t fg = {186, 186, 186};
 
 size_t curx = 5;
