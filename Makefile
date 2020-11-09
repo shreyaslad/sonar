@@ -30,7 +30,7 @@ TEST_BUILD_DIR = ${BUILD_DIR}/test
 TEST_KNL_TARGET = ${TEST_BUILD_DIR}/ktest.elf
 
 LIMINE_DIR = ${BUILD_DIR}/limine
-LIMINE_BRANCH = 0.5.2
+LIMINE_BRANCH = 0.6
 
 LOG = ${SONAR_BUILD_DIR}/dump.log
 
@@ -72,6 +72,7 @@ sonar:
 	sudo mkdir ${SONAR_MNT_TARGET}/boot/
 	sudo cp ${SONAR_KNL_TARGET} ${SONAR_MNT_TARGET}/boot/
 	sudo cp ${SRC_DIR}/boot/limine.cfg ${SONAR_MNT_TARGET}/boot/
+	sudo cp ${SRC_DIR}/boot/limine_background.bmp ${SONAR_MNT_TARGET}
 	sudo cp ${SONAR_KNL_TARGET} ${SONAR_MNT_TARGET}/boot/
 	sync
 	sudo umount ${SONAR_MNT_TARGET}
