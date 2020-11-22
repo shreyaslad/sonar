@@ -1,4 +1,4 @@
-#include <hyper/vmx/vmerr.h>
+#include <virt/intel/vmx/vmerr.h>
 
 #define VMCS_EXIT_ENMI      0
 #define VCMS_EXIT_EXTINT    1

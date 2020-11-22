@@ -1,61 +1,185 @@
 default: all
 
-.PHONY: all \
-		run \
-		debug \
-		limine \
-		sonar-kernel \
-		test-kernel \
-		clean-all \
-		clean-sonar \
-		clean-test
+.PHONY:	all				\
+		build			\
+		run				\
+		debug			\
+		deps			\
+		sonar-kernel	\
+		test-kernel		\
+		clean-all		\
+		clean-sonar		\
+		clean-test		\
 
-ARCH = x86_64
+###########
+# Tooling #
+###########
 
-CC = clang
-LD = gcc
-AS = nasm
+export	\
+		ARCH	\
+		CC		\
+		LD		\
+		AS		\
 
-SRC_DIR = ./src
-TEST_DIR = ./test
-BUILD_DIR = ./build
+ARCH	= x86_64
 
-SONAR_BUILD_DIR = ${BUILD_DIR}/sonar
-SONAR_KNL_TARGET = ${SONAR_BUILD_DIR}/ksonar.elf
-SONAR_IMG_TARGET = ${SONAR_BUILD_DIR}/sonar.img
-SONAR_MNT_TARGET = ${SONAR_BUILD_DIR}/sonar_image
-SONAR_IMG_SIZE = 128
+CC		= clang
+LD		= gcc
+AS		= nasm
 
-TEST_BUILD_DIR = ${BUILD_DIR}/test
-TEST_KNL_TARGET = ${TEST_BUILD_DIR}/ktest.elf
+QEMU	= qemu-system-${ARCH}
+GDB		= gdb
 
-LIMINE_DIR = ${BUILD_DIR}/limine
-LIMINE_BRANCH = 0.6
+#########################
+# Top Level Directories #
+#########################
 
-LOG = ${SONAR_BUILD_DIR}/dump.log
+export	\
+		DIR			\
+		SRC_DIR		\
+		TEST_DIR	\
+		BUILD_DIR	\
 
-QEMUFLAGS =	\
-		-m 3G \
-		-boot menu=on \
-		-hda ${SONAR_IMG_TARGET} \
-		-smp cpus=4	\
-		-machine q35 \
-		-name sonar	\
+DIR			= $(shell readlink -f .)
+
+SRC_DIR		= ${DIR}/src
+TEST_DIR	= ${DIR}/test
+BUILD_DIR	= ${DIR}/build
+
+###########
+# Kernels #
+###########
+
+export	\
+		SONAR_BUILD_DIR		\
+		SONAR_KNL_TARGET	\
+		SONAR_IMG_TARGET	\
+		SONAR_MNT_TARGET	\
+		TEST_BUILD_DIR		\
+		TEST_KNL_TARGET		\
+
+KERNEL_DIR			= ${BUILD_DIR}/kernels
+
+SONAR_BUILD_DIR		= ${KERNEL_DIR}/sonar
+SONAR_KNL_TARGET	= ${SONAR_BUILD_DIR}/ksonar.elf
+SONAR_IMG_TARGET	= ${SONAR_BUILD_DIR}/sonar.img
+SONAR_MNT_TARGET	= ${SONAR_BUILD_DIR}/sonar_image
+SONAR_IMG_SIZE		= 128
+
+TEST_BUILD_DIR		= ${KERNEL_DIR}/test
+TEST_KNL_TARGET		= ${TEST_BUILD_DIR}/ktest.elf
+
+################
+# Dependencies #
+################
+
+export	\
+		DEPS_DIR		\
+		LIMINE_DIR		\
+		LIMINE_REPO		\
+		LIMINE_BRANCH	\
+		BDDISASM_DIR	\
+		BDDISASM_REPO	\
+		BDDISASM_BRANCH	\
+		LAI_DIR			\
+		LAI_HEADER_DIR	\
+		LAI_COMPILE_DIR	\
+		LAI_REPO		\
+		LAI_BRANCH		\
+
+DEPS_DIR		= ${BUILD_DIR}/deps
+
+LIMINE_DIR		= ${DEPS_DIR}/limine
+LIMINE_REPO 	= https://github.com/limine-bootloader/limine
+LIMINE_BRANCH	= v0.6
+
+BDDISASM_DIR	= ${DEPS_DIR}/bddisasm
+BDDISASM_REPO	= https://github.com/bitdefender/bddisasm
+BDDISASM_BRANCH	= v1.31.2
+
+LAI_HEADER_DIR	= ${SRC_DIR}/acpi
+LAI_COMPILE_DIR	= ${SRC_DIR}/thirdparty/lai
+LAI_DIR			= ${DEPS_DIR}/lai
+LAI_REPO		= https://github.com/managarm/lai
+LAI_BRANCH		= master
+
+#######################################
+# Compilation/Linkage/Execution Flags #
+#######################################
+
+export	\
+		CFLAGS	\
+		O_LEVEL	\
+		LDFLAGS	\
+
+CFLAGS	=	\
+		-target	${ARCH}-unknown-none	\
+		-ggdb							\
+		-nostdlib						\
+		-fno-stack-protector			\
+		-nostartfiles					\
+		-nodefaultlibs					\
+		-Wall							\
+		-Wextra							\
+		-Wpedantic						\
+		-ffreestanding					\
+		-std=gnu11						\
+		-mcmodel=kernel					\
+		-fno-pic						\
+		-mno-red-zone					\
+		-mno-sse						\
+		-mno-sse2						\
+		-fasm-blocks					\
+		#-fsanitize=undefined			\
+
+O_LEVEL	=	\
+		2	\
+
+LDFLAGS	=	\
+		-no-pie					\
+		-ffreestanding			\
+		-O${O_LEVEL}			\
+		-nostdlib				\
+		-z max-page-size=0x1000	\
+		-T linker.ld			\
+
+QFLAGS	=	\
+		-name sonar								\
+		-m			3G							\
+		-boot		menu=off					\
+		-hda		${SONAR_IMG_TARGET}			\
+		-smp		cpus=4						\
+		-numa		node,cpus=0,nodeid=0		\
+		-numa		node,cpus=1,nodeid=1		\
+		-numa		node,cpus=2,nodeid=2		\
+		-numa		node,cpus=3,nodeid=3		\
+		-machine	q35							\
+		-enable-kvm								\
+		-cpu		host,+vmx					\
+		-device		intel-iommu,aw-bits=48		\
+
+LOG		= ${SONAR_BUILD_DIR}/qemu.log
 
 all: clean-sonar sonar run
 
+build: clean-sonar sonar
+
 run:
-	qemu-system-${ARCH} ${QEMUFLAGS} -serial stdio --enable-kvm -cpu host,+vmx | tee "${LOG}"
+	${QEMU} ${QFLAGS} -serial stdio | tee "${LOG}"
 
 debug:
-	qemu-system-${ARCH} ${QEMUFLAGS} -s -S -no-shutdown -no-reboot
-	gdb -ex "target remote localhost:1234" -ex "symbol-file ${SONAR_KNL_TARGET}"
-
-limine:
-	git clone https://github.com/limine-bootloader/limine ${LIMINE_DIR} --branch=v${LIMINE_BRANCH}
-	make -C ${LIMINE_DIR} limine-install
+	${QEMU} ${QFLAGS} -s -S -no-shutdown -no-reboot
+	${GDB} -ex "target remote localhost:1234" -ex "symbol-file ${SONAR_KNL_TARGET}"
 
 sonar:
+	if [ ! -d '${DEPS_DIR}' ]; then	\
+	make deps;	\
+	fi	\
+
+	if [ -d '${LAI_DIR}' ]; then \
+	mv ${LAI_DIR} ${LAI_COMPILE_DIR}; \
+	fi \
+
 	mkdir -p ${SONAR_BUILD_DIR}/objects
 	mkdir -p ${TEST_BUILD_DIR}/objects
 	mkdir ${SONAR_MNT_TARGET}
@@ -80,6 +204,8 @@ sonar:
 
 	sudo ${LIMINE_DIR}/limine-install ${LIMINE_DIR}/limine.bin ${SONAR_IMG_TARGET}
 
+	mv ${LAI_COMPILE_DIR} ${LAI_DIR}
+
 	find ${SRC_DIR} -type f -name '*.o' -exec mv {} ${SONAR_BUILD_DIR}/objects \;
 	find ${TEST_DIR} -type f -name '*.o' -exec mv {} ${TEST_BUILD_DIR}/objects \;
 
@@ -89,8 +215,10 @@ sonar-kernel:
 test-kernel:
 	make -C ${TEST_DIR} all
 
-clean-all:
-	rm -rf ${BUILD_DIR}
+deps:
+	make -C ${BUILD_DIR}
+
+clean-all: clean-kernels clean-deps
 	find . -type f -name "*.o" -delete
 
 clean-sonar:
@@ -103,3 +231,16 @@ clean-test:
 
 clean-limine:
 	rm -rf ${LIMINE_DIR}
+
+clean-bddisasm:
+	rm -rf ${BDDISASM_DIR}
+
+clean-lai:
+	rm -rf ${LAI_COMPILE_DIR} ${LAI_DIR}
+	rm -rf ${LAI_HEADER_DIR}/acpispec ${LAI_HEADER_DIR}/lai
+
+clean-kernels:
+	rm -rf ${KERNEL_DIR}
+
+clean-deps: clean-limine clean-bddisasm clean-lai
+	make -C ${BUILD_DIR} clean

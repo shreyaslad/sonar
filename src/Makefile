@@ -1,60 +1,19 @@
 default: all
 
-.PHONY: all \
-		symlist \
+.PHONY:	all		\
+		symlist	\
 
-ARCH = x86_64
+C_SOURCES	= $(shell find . -type f -name '*.c')
+H_SOURCES	= $(shell find . -type f -name '*.h')
+ASM_SOURCES	= $(shell find . -type f -name '*.asm')
+LIBS		= $(shell find . -type f -name '*.a')
 
-CC = clang
-LD = gcc
-AS = nasm
+OBJ			= ${C_SOURCES:.c=.o} ${ASM_SOURCES:.asm=.o}
 
-SRC_DIR = ./
-BUILD_DIR = ../build
-
-SONAR_BUILD_DIR = ${BUILD_DIR}/sonar
-SONAR_KNL_TARGET = ${SONAR_BUILD_DIR}/ksonar.elf
-SONAR_IMG_TARGET = ${SONAR_BUILD_DIR}/sonar.img
-SONAR_MNT_TARGET = ${SONAR_BUILD_DIR}/sonar_image
-
-C_SOURCES = $(shell find . -type f -name '*.c')
-H_SOURCES = $(shell find . -type f -name '*.h')
-A_SOURCES = $(shell find . -type f -name '*.asm')
-
-OBJ = ${C_SOURCES:.c=.o} ${A_SOURCES:.asm=.o}
-
-CFLAGS = \
-		-target ${ARCH}-unknown-none \
-		-ggdb \
-		-nostdlib \
-		-fno-stack-protector \
-		-nostartfiles \
-		-nodefaultlibs \
-		-Wall \
-		-Wextra	\
-		-Wpedantic \
-		-ffreestanding \
-		-std=gnu11 \
-		-mcmodel=kernel	\
-		-I. \
-        -Ilib \
-		-fno-pic \
-		-mno-red-zone \
-		-mno-sse \
-		-mno-sse2 \
-		-fasm-blocks \
-		#-fsanitize=undefined \
-
-O_LEVEL = \
-		2 \
-
-LDFLAGS = \
-		-no-pie	\
-		-ffreestanding \
-		-O${O_LEVEL} \
-		-nostdlib \
-		-z max-page-size=0x1000 \
-		-T linker.ld \
+CFLAGS		+=							\
+			-I.							\
+			-Ilib						\
+			-Ithirdparty/lai/include	\
 
 all: ${SONAR_KNL_TARGET}
 

@@ -1,5 +1,5 @@
-#ifndef __HYPER__VMERR_H__
-#define __HYPER__VMERR_H__
+#ifndef __VMX__VMERR_H__
+#define __VMX__VMERR_H__
 
 #include <stdint.h>
 

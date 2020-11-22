@@ -16,7 +16,6 @@ void* find_sdt(const char* signature, int idx) {
 
             if (!strncmp(ptr->signature, signature, 4)) {
                 if (cnt++ == idx) {
-                    //printf(KPRN_INFO, "acpi:\tFound \"%s\" at %X\n", signature, (size_t)ptr);
                     return (void *)ptr;
                 }
             }
@@ -27,7 +26,6 @@ void* find_sdt(const char* signature, int idx) {
 
             if (!strncmp(ptr->signature, signature, 4)) {
                 if (cnt++ == idx) {
-                    //printf(KPRN_INFO, "acpi:\tFound \"%s\" at %X\n", signature, (size_t)ptr);
                     return (void *)ptr;
                 }
             }
@@ -50,10 +48,8 @@ void init_acpi(uint64_t rsdp_addr) {
 
 found:
     if (rsdp->rev >= 2 && rsdp->xsdt_paddr) {
-        //printf(KPRN_INFO, "acpi:\tXSDT at %X\n", ((size_t)rsdp->xsdt_paddr + HIGH_VMA));
         xsdt = (struct xsdt_t *)((size_t)rsdp->xsdt_paddr + HIGH_VMA);
     } else {
-        //printf(KPRN_INFO, "acpi:\tRSDT at %X\n", ((size_t)rsdp->rsdt_paddr + HIGH_VMA));
         rsdt = (struct rsdt_t *)((size_t)rsdp->rsdt_paddr + HIGH_VMA);
     }
 

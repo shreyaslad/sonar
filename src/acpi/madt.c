@@ -19,7 +19,7 @@ int nmi_cnt;
 
 void init_madt() {
     if ((madt = find_sdt("APIC", 0))) {
-        TRACE("apic configuration:\n");
+        TRACE("APIC configuration:\n");
 
         lapics = kmalloc(ACPI_MAX_TBL_CNT) + HIGH_VMA;
         ioapics = kmalloc(ACPI_MAX_TBL_CNT) + HIGH_VMA;

@@ -1,4 +1,4 @@
-#include <sys/smp.h>
+#include <ospm/smp.h>
 
 void init_smp(struct stivale2_struct_tag_smp* smp) {
     TRACE("parsing smp information\n");

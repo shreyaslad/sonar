@@ -1,4 +1,4 @@
-#include <hyper/vmx/vmx.h>
+#include <virt/intel/vmx/vmx.h>
 
 int vmptrld(uint64_t vmcs) {
     uint8_t ret;
@@ -48,7 +48,13 @@ uint64_t vmread(uint64_t encoding) {
 }
 
 static int init_vmcs() {
-    
+    uint64_t* vmcs = pmm_alloc(1);
+    TRACE("vmcs region: %#lp\n", vmcs + HIGH_VMA);
+    memset(vmcs + HIGH_VMA, 0, PAGESIZE);
+    vmptrld((uint64_t)vmcs);
+
+    // Set execution state
+
 }
 
 static int vmxon() {
@@ -115,20 +121,14 @@ static int has_vmx() {
     return ecx & 1;
 }
 
-int init_vmx() {
+void init_vmx() {
     if (!has_vmx()) {
-        ERR("cpu does not support vmx!");
-        goto error;
+        panic("cpu does not support vmx!");
     }
 
     TRACE("cpu supports vmx\n");
 
     if (!vmxon()) {
-        goto error;
+        panic("Failed to execute vmxon!");
     }
-
-    return 1;
-
-    error:
-        return 0;
 }

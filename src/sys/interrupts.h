@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <alloc.h>
+#include <panic.h>
 #include <trace.h>
 #include <sys/regs.h>
 #include <drivers/apic.h>

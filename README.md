@@ -17,19 +17,19 @@ The tree below outlines an example structure of the build directory, which conta
 
 ```
 .
-├── limine
-│   ...
-├── sonar
-│   └── objects
-│       ...
-└── test
-    └── objects
-        ...
+├── deps
+│   ├── bddisasm
+│   └── limine
+└── kernels
+    ├── sonar
+    │   └── objects
+    └── test
+        └── objects
 ```
 
 Each node in the tree is a directory. For the `sonar` and `test` subprojects, the root folder contains the final executables and/or images while the `objects` folder contains the compiled object files.
 
-### Build Instructions
+### Building and Running
 
 There are two possible methods for building:
 1. Creating a full hard disk image
@@ -42,11 +42,18 @@ This approach lets one create a full hard drive image, complete with sonar, the 
 Once the image (`sonar.img`) has been created, one can mount it then add/remove files and tweak the limine configuration to suit specific needs. The `sonar.img` file is generated like so: 
 
 ```
-make limine
 make
 ```
 
+The `make` command will automatically clone the dependencies and launch qemu.  
+
 #### 2. Building the Standalone Kernel
+
+Before building the standalone kernel, be sure to clone and compile the dependencies first with
+
+```
+make deps
+```
 
 If the standalone sonar kernel image needs to be built for whatever reason (for use with a different bootloader, a different sized image, etc), it can be generated with the following command:
 
@@ -64,15 +71,27 @@ make test-kernel
 
 ### Cleaning Up
 
-If, for whatever reason, the codebase needs to be rebuilt, it's often a better idea to only rebuilt the parts that need to be. Because of this, four rules are provided to clean subprojects and dispose of remaining object files. They are as follows:
+If, for whatever reason, the codebase needs to be rebuilt, it's often a better idea to only rebuilt the parts that need to be. Because of this, rules are provided to clean subprojects and dispose of remaining object files. They are as follows:
 
 ```
 make clean-all
 
+make clean-kernels
+make clean-deps
+
 make clean-sonar
 make clean-test
+
 make clean-limine
+make clean-bddisasm
+make clean-lai
 ```
+
+## Dependencies
+
+- [Limine](https://github.com/limine-bootloader/limine) @ v0.6
+- [Bddisasm](https://github.com/bitdefender/bddisasm) @ v1.31.2
+- [LAI](https://github.com/managarm/lai) @ master
 
 ## License
 

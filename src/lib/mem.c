@@ -32,7 +32,7 @@ int memcmp(const void* s1, const void* s2, size_t n) {
 }
 
 void init_mem(struct stivale2_struct_tag_memmap* memmap) {
-    TRACE("bootstrapping memory:\n");
+    TRACE("Memory Map:\n");
 
     struct stivale2_mmap_entry* entry = (struct mmap_entry_t *)memmap->memmap;
 
@@ -82,8 +82,5 @@ void init_mem(struct stivale2_struct_tag_memmap* memmap) {
         }
     }
 
-    TRACE("available memory: %uGiB\n",
-            totalmem / 1073741824);
-
-    return;
+    TRACE("Available memory: %uGiB\n", totalmem / 1073741824);
 }

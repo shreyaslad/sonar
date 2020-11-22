@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <trace.h>
-#include <boot/stivale2.h>
+#include <protos/stivale2.h>
 #include <mm/pmm.h>
 #include <mm/vmm.h>
 

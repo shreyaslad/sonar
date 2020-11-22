@@ -8,7 +8,7 @@
 #include <alloc.h>
 #include <lib/mem.h>
 #include <drivers/vesa.h>
-#include <boot/stivale2.h>
+#include <protos/stivale2.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 // \author (c) Marco Paland (info@paland.com)
