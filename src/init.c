@@ -36,6 +36,12 @@ void sonar_main(struct stivale2_struct* info) {
     init_ospm();
     init_vmx();
 
+<<<<<<< HEAD
     asm volatile("cli\n\t"
                  "hlt\n\t");
+=======
+    spin:
+        asm volatile("cli\n\t"
+                     "hlt\n\t");
+>>>>>>> b465c02fd495b7670f00c3ccf7d404ed262a6655
 }
