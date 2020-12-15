@@ -44,8 +44,6 @@ void sonar_main(struct stivale2_struct* info) {
 
     init_vmx();
 
-    asm volatile("int $0xe");
-
     spin:
         asm volatile("cli\n\t"
                      "hlt\n\t");
