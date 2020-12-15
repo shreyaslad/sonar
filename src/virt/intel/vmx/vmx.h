@@ -8,7 +8,6 @@
 #include <sys/msrs.h>
 #include <trace.h>
 #include <mm/pmm.h>
-#include <panic.h>
 
 #undef __MODULE__
 #define __MODULE__ "vmx"

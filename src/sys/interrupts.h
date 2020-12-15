@@ -7,7 +7,7 @@
 #include <panic.h>
 #include <trace.h>
 #include <sys/regs.h>
-#include <drivers/apic.h>
+#include <ospm/apic.h>
 #include <sys/ports.h>
 #include <io.h>
 

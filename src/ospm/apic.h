@@ -3,11 +3,10 @@
 
 #include <stdint.h>
 #include <trace.h>
+#include <ospm/acpi/acpi.h>
 #include <sys/ports.h>
 #include <sys/msrs.h>
-#include <acpi/madt.h>
 
-#undef __MODULE__
 #define __MODULE__ "apic"
 
 #define LAPIC_REG_ID                    0x20
@@ -62,6 +61,20 @@
 #define LAPIC_REG_TIMER_CURCNT          0x390
 #define LAPIC_REG_TIMER_DIVCONF         0x3E0
 
+extern struct acpi_madt* madt;
+
+extern struct madt_lapic** lapics;
+extern int lapic_cnt;
+
+extern struct madt_ioapic** ioapics;
+extern int ioapic_cnt;
+
+extern struct madt_iso** isos;
+extern int iso_cnt;
+
+extern struct madt_nmi** nmis;
+extern int nmi_cnt;
+
 uint32_t lapic_read(uint16_t offset);
 void lapic_write(uint16_t offset, uint32_t val);
 
@@ -72,5 +85,7 @@ uint32_t redirect_gsi(uint32_t gsi, uint64_t ap, uint8_t irq, uint64_t flags);
 
 void init_lapic_timer();
 void init_apic();
+
+void init_madt();
 
 #endif

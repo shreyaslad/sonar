@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <trace.h>
-#include <acpi/acpi.h>
+#include <ospm/acpi/acpi.h>
 
 struct dmar_t {
     struct sdt_t sdt;

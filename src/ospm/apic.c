@@ -1,10 +1,66 @@
-#include <drivers/apic.h>
+#include <ospm/apic.h>
+
+struct acpi_madt {
+    struct sdt_t sdt;
+    uint32_t l_paddr;
+    uint32_t flags;
+    uint8_t madt_entries_begin;
+} __attribute__((packed));
+
+struct madt_hdr {
+    uint8_t type;
+    uint8_t len;
+} __attribute__((packed));
+
+struct madt_lapic {
+    struct madt_hdr hdr;
+    uint8_t acpi_proc_id;
+    uint8_t apic_id;
+    uint32_t flags; // bit 0: Processor Enabled | bit 1: Online Capable
+} __attribute__((packed));
+
+struct madt_ioapic {
+    struct madt_hdr hdr;
+    uint8_t ioapic_id;
+    uint8_t reserved;
+    uint32_t ioapic_addr;
+    uint32_t gsi_base;
+} __attribute__((packed));
+
+struct madt_iso {
+    struct madt_hdr hdr;
+    uint8_t bus_src;
+    uint8_t irq_src;
+    uint32_t gsi;
+    uint16_t flags;
+} __attribute__((packed));
+
+struct madt_nmi {
+    struct madt_hdr hdr;
+    uint8_t acpi_proc_id;
+    uint16_t flags;
+    uint8_t lint;
+} __attribute__((packed));
+
+struct acpi_madt* madt;
+
+struct madt_lapic** lapics;
+int lapic_cnt;
+
+struct madt_ioapic** ioapics;
+int ioapic_cnt;
+
+struct madt_iso** isos;
+int iso_cnt;
+
+struct madt_nmi** nmis;
+int nmi_cnt;
 
 #define APIC_ACTIVE_HIGH        (1 << 1)
 #define APIC_LEVEL_TRIGGERED    (1 << 3)
 #define APIC_REDIR_BAD_READ     0xFFFFFFFFFFFFFFFF
 
-struct ioapic_redir_entry_t {
+struct ioapic_redir_entry {
     uint8_t i_vec;
     uint8_t deliv_mode: 2;
     uint8_t dest_most: 1;
@@ -46,11 +102,11 @@ static uint32_t get_max_gsi(uint64_t ioapic_base) {
     return val & ~(1 << 7);
 }
 
-static struct madt_ioapic_t* get_ioapic(uint32_t gsi) {
-    struct madt_ioapic_t* valid = NULL;
+static struct madt_ioapic* get_ioapic(uint32_t gsi) {
+    struct madt_ioapic* valid = NULL;
 
     for (int i = 0; i <= ioapic_cnt; i++) {
-        struct madt_ioapic_t* cur = ioapics[i];
+        struct madt_ioapic* cur = ioapics[i];
         uint32_t max_gsi = get_max_gsi(cur->ioapic_addr) + cur->gsi_base;
 
         if (cur->gsi_base <= gsi && max_gsi >= gsi) {
@@ -62,7 +118,7 @@ static struct madt_ioapic_t* get_ioapic(uint32_t gsi) {
 }
 
 static uint32_t read_redir_entry(uint32_t gsi) {
-    struct madt_ioapic_t* valid = get_ioapic(gsi);
+    struct madt_ioapic* valid = get_ioapic(gsi);
 
     if (!valid)
         return APIC_REDIR_BAD_READ;
@@ -74,7 +130,7 @@ static uint32_t read_redir_entry(uint32_t gsi) {
 }
 
 static uint32_t set_redir_entry(uint64_t gsi, uint64_t val) {
-    struct madt_ioapic_t* valid = get_ioapic(gsi);
+    struct madt_ioapic* valid = get_ioapic(gsi);
     if (!valid)
         return APIC_REDIR_BAD_READ;
     
@@ -145,4 +201,41 @@ void init_apic() {
     }
 
     //uint32_t* volatile lapic_base = (uint32_t* volatile)madt->l_paddr;
+}
+
+void init_madt() {
+    if ((madt = find_sdt("APIC", 0))) {
+        TRACE("APIC configuration:\n");
+
+        lapics = kmalloc(ACPI_MAX_TBL_CNT) + HIGH_VMA;
+        ioapics = kmalloc(ACPI_MAX_TBL_CNT) + HIGH_VMA;
+        isos = kmalloc(ACPI_MAX_TBL_CNT) + HIGH_VMA;
+        nmis = kmalloc(ACPI_MAX_TBL_CNT) + HIGH_VMA;
+
+        for (uint8_t* madt_ptr = (uint8_t *)(&madt->madt_entries_begin);
+            (size_t)madt_ptr < (size_t)madt + madt->sdt.len;
+            madt_ptr += *(madt_ptr + 1)) {
+                switch (*(madt_ptr)) {
+                    case 0:
+                        TRACE("\tlapic #%u\n", lapic_cnt);
+                        lapics[lapic_cnt++] = (struct madt_lapic_t *)madt_ptr;
+                        break;
+                    case 1:
+                        TRACE("\tioapic #%u\n", ioapic_cnt);
+                        ioapics[ioapic_cnt++] = (struct madt_ioapic *)madt_ptr;
+                        break;
+                    case 2:
+                        TRACE("\tiso #%u\n", iso_cnt);
+                        isos[iso_cnt++] = (struct madt_iso_t *)madt_ptr;
+                        break;
+                    case 4:
+                        TRACE("\tnmi #%u\n", nmi_cnt);
+                        nmis[nmi_cnt++] = (struct madt_nmi_t *)madt_ptr;
+                        break;
+                    default:
+                        WARN("nothing found\n");
+                        break;
+                }
+            }
+    }
 }

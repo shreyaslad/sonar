@@ -8,7 +8,7 @@
 #include <io.h>
 #include <vec.h>
 #include <sys/ports.h>
-#include <acpi/acpi.h>
+#include <ospm/acpi/acpi.h>
 
 struct pci_id_t {
     uint8_t class;

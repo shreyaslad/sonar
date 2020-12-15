@@ -1,4 +1,4 @@
-#include <acpi/acpi.h>
+#include <ospm/acpi/acpi.h>
 
 #undef __MODULE__
 #define __MODULE__ "acpi"
@@ -52,6 +52,4 @@ found:
     } else {
         rsdt = (struct rsdt_t *)((size_t)rsdp->rsdt_paddr + HIGH_VMA);
     }
-
-    init_madt();
 }

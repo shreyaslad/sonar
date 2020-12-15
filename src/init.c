@@ -1,14 +1,9 @@
+#include <mem.h>
 #include <protos/stivale2.h>
-
 #include <sys/interrupts.h>
 #include <drivers/vesa.h>
-#include <mem.h>
-#include <acpi/acpi.h>
-#include <drivers/apic.h>
 #include <virt/intel/vmx/vmx.h>
-#include <ospm/smp.h>
-#include <drivers/vesa.h>
-#include <panic.h>
+#include <ospm/ospm.h>
 
 __attribute__((noreturn))
 void sonar_main(struct stivale2_struct* info) {
@@ -33,20 +28,14 @@ void sonar_main(struct stivale2_struct* info) {
                 break;
         }
     }
-
+    
     init_isrs();
     init_vesa(fb);
     init_mem(memmap);
 
-    init_acpi(rsdp->rsdp + HIGH_VMA);
-    init_apic();
-    init_smp(smp);
-
+    init_ospm();
     init_vmx();
 
-    asm volatile("int $0xe");
-
-    spin:
-        asm volatile("cli\n\t"
-                     "hlt\n\t");
+    asm volatile("cli\n\t"
+                 "hlt\n\t");
 }

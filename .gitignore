@@ -1,10 +1,9 @@
 **/*.o
-sonar.img
 src/sys/symlist.gen
 .vscode-ctags
 .vscode
 src/thirdparty
-src/acpi/lai
-src/acpi/acpispec
+src/ospm/acpi/lai
+src/ospm/acpi/acpispec
 build/deps
 build/kernels

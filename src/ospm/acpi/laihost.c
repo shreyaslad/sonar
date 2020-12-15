@@ -1,11 +1,10 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <alloc.h>
-#include <panic.h>
 #include <str.h>
 #include <trace.h>
-#include <acpi/acpi.h>
-#include <acpi/lai/host.h>
+#include <ospm/acpi/acpi.h>
+#include <ospm/acpi/lai/host.h>
 #include <drivers/pci.h>
 
 void laihost_panic(const char* str) {
@@ -13,7 +12,17 @@ void laihost_panic(const char* str) {
 }
 
 void laihost_log(int level, const char* str) {
-    printf("[*] %-5s\n", str);
+    switch (level) {
+        case LAI_DEBUG_LOG:
+            TRACE("%s", str);
+            break;
+        case LAI_WARN_LOG:
+            WARN("%s", str);
+            break;
+        default:
+            WARN("%s", str);
+            break;
+    }
 }
 
 void* laihost_malloc(size_t size) {

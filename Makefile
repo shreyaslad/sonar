@@ -97,7 +97,7 @@ BDDISASM_DIR	= ${DEPS_DIR}/bddisasm
 BDDISASM_REPO	= https://github.com/bitdefender/bddisasm
 BDDISASM_BRANCH	= v1.31.2
 
-LAI_HEADER_DIR	= ${SRC_DIR}/acpi
+LAI_HEADER_DIR	= ${SRC_DIR}/ospm/acpi
 LAI_COMPILE_DIR	= ${SRC_DIR}/thirdparty/lai
 LAI_DIR			= ${DEPS_DIR}/lai
 LAI_REPO		= https://github.com/managarm/lai
@@ -166,6 +166,9 @@ build: clean-sonar sonar
 
 run:
 	${QEMU} ${QFLAGS} -serial stdio | tee "${LOG}"
+
+monitor:
+	${QEMU} ${QFLAGS} -d int -monitor stdio | tee "${LOG}"
 
 debug:
 	${QEMU} ${QFLAGS} -s -S -no-shutdown -no-reboot
