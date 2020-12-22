@@ -45,6 +45,72 @@ struct xsdt_t {
     uint64_t sdt_ptr[];
 } __attribute__((packed));
 
+struct generic_addr {
+    uint8_t id;
+    uint8_t width;
+    uint8_t offset;
+    uint8_t access_size;
+    uint64_t address;
+} __attribute__((packed));
+
+struct fadt_t {
+    uint32_t firmware_ctrl;
+    uint32_t dsdt;
+    uint8_t reserved;
+    uint8_t pref_pm_profile;
+    uint16_t sci_int;
+    uint16_t sci_cmd;
+    uint8_t acpi_enable;
+    uint8_t acpi_disable;
+    uint8_t s4bios_req;
+    uint8_t pstate_cnt;
+    uint32_t pm1a_evt_blk;
+    uint32_t pm1b_evt_blk;
+    uint32_t pm1a_cnt_blk;
+    uint32_t pm1b_cnt_blk;
+    uint32_t pm2_cnt_blk;
+    uint32_t pm_tmr_blk;
+    uint32_t gpe0_blk;
+    uint32_t gpe1_blk;
+    uint8_t pm1_evt_len;
+    uint8_t pm1_cnt_len;
+    uint8_t pm2_cnt_len;
+    uint8_t pm_tmr_len;
+    uint8_t gpe0_blk_len;
+    uint8_t gpe1_blk_len;
+    uint8_t gpe1_base;
+    uint8_t cst_cnt;
+    uint16_t p_lvl2_lat;
+    uint16_t p_lvl3_lat;
+    uint16_t flush_size;
+    uint16_t flush_stride;
+    uint8_t duty_offset;
+    uint8_t duty_width;
+    uint8_t day_alarm;
+    uint8_t month_alarm;
+    uint8_t century;
+    uint16_t iapc_boot_arch;
+    uint8_t reserved0;
+    uint32_t flags;
+    struct generic_addr reset_reg;
+    uint8_t reset_val;
+    uint16_t arm_boot_arch;
+    uint8_t minor_ver;
+    uint64_t x_firmware_ctrl;
+    uint64_t x_dsdt;
+    struct generic_addr x_pm1a_evt_blk;
+    struct generic_addr x_pm1b_evt_blk;
+    struct generic_addr x_pm1a_cnt_blk;
+    struct generic_addr x_pm1b_cnt_blk;
+    struct generic_addr x_pm2_cnt_blk;
+    struct generic_addr x_pm_tmr_blk;
+    struct generic_addr x_gpe0_blk;
+    struct generic_addr x_gpe1_blk;
+    struct generic_addr sleep_ctrl_reg;
+    struct generic_addr sleep_status_reg;
+    uint64_t hypervisor_id;
+} __attribute__((packed));
+
 void* find_sdt(const char* signature, int idx);
 void init_acpi(uint64_t rsdp_addr);
 

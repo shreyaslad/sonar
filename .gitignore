@@ -2,6 +2,7 @@
 src/sys/symlist.gen
 .vscode-ctags
 .vscode
+.idea
 src/thirdparty
 src/ospm/acpi/lai
 src/ospm/acpi/acpispec

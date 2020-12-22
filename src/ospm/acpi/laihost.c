@@ -14,13 +14,13 @@ void laihost_panic(const char* str) {
 void laihost_log(int level, const char* str) {
     switch (level) {
         case LAI_DEBUG_LOG:
-            TRACE("%s", str);
+            TRACE("%s\n", str);
             break;
         case LAI_WARN_LOG:
-            WARN("%s", str);
+            WARN("%s\n", str);
             break;
         default:
-            WARN("%s", str);
+            WARN("%s\n", str);
             break;
     }
 }
@@ -44,19 +44,7 @@ void laihost_free(void* p, size_t size) {
 // TODO: sleep
 
 void* laihost_scan(const char* signature, size_t index) {
-    if (!strncmp(signature, "DSDT", 4)) {
-        if (index > 0) {
-            #define __MODULE__ "acpi"
-            ERR("Only valid DSDT index is 0\n");
-            return NULL;
-        }
-
-        void* fadt = find_sdt("FACP", 0);
-        void* dsdt = (void *)(*(size_t *)((size_t)fadt + sizeof(struct sdt_t) + 4));
-        return dsdt;
-    } else {
-        return find_sdt(signature, index);
-    }
+    return find_sdt(signature, index);
 }
 
 uint8_t laihost_inb(uint16_t port) {
