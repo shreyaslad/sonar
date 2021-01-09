@@ -10,7 +10,7 @@ static struct xsdt_t* xsdt;
 void* find_sdt(const char* signature, int idx) {
     int cnt = 0;
 
-    if (xsdt != NULL) {
+    if (xsdt) {
         for (size_t i = 0; i < (xsdt->sdt.len - sizeof(struct sdt_t)) / 8; i++) {
             struct sdt_t* ptr = (struct sdt_t *)((size_t)xsdt->sdt_ptr[i] + HIGH_VMA);
 
@@ -56,6 +56,8 @@ found: ;
         rsdt = (struct rsdt_t *)((size_t)rsdp->rsdt_paddr + HIGH_VMA);
         sdt = rsdt->sdt;
     }
+
+    TRACE("REV: %d\n", rsdp->rev);
 
     TRACE("Found the \"%s\"\n", (rsdp->rev > 0) ? "XSDT" : "RSDT");
 

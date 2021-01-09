@@ -186,8 +186,9 @@ static uint32_t* pci_cfg_space(uint16_t bus, uint16_t dev, uint16_t func) {
     for (int i = 0; i < pci_cfg_desc_cnt; i++) {
         struct pci_cfg_desc_t* cfg = &cfg_descs[i];
 
-        if (bus >= cfg->start_bus && bus < cfg->end_bus)
+        if (bus >= cfg->start_bus && bus < cfg->end_bus) {
             return (uint32_t*)(cfg->base + ((bus - cfg->start_bus) << 20 | dev << 15 | func << 12));
+        }
     }
 
     return NULL;
@@ -212,12 +213,12 @@ static void pci_enumerate() {
                     
                 uint16_t c_sub = cfg_space[2] >> 16;
 
-                /*struct pci_dev_t* device = kmalloc(sizeof(struct pci_dev_t));
+                struct pci_dev_t* device = kmalloc(sizeof(struct pci_dev_t));
                 device->bus = bus;
                 device->device = dev;
                 device->function = func;
                 device->cfg_space = cfg_space;
-                vec_a(devices, device);*/
+                vec_a(devices, device);
 
                 TRACE("\t- %d:%d.%d: %s\n", bus, dev, func, get_dev_type(c_sub >> 8, c_sub, cfg_space[2]));
             }

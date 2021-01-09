@@ -49,7 +49,7 @@ uint64_t vmread(uint64_t encoding) {
 
 static int init_vmcs() {
     uint64_t* vmcs = pmm_alloc(1);
-    TRACE("vmcs region: %#lp\n", vmcs + HIGH_VMA);
+    TRACE("VMCS region: %#lp\n", vmcs + HIGH_VMA);
     memset(vmcs + HIGH_VMA, 0, PAGESIZE);
     vmptrld((uint64_t)vmcs);
 
@@ -59,7 +59,7 @@ static int init_vmcs() {
 
 static int vmxon() {
     void* vmxon_region = pmm_alloc(1);
-    TRACE("vmxon region: %#lx\n", (size_t)vmxon_region + HIGH_VMA);
+    TRACE("VMXON region: %#lx\n", (size_t)vmxon_region + HIGH_VMA);
     memset(vmxon_region + HIGH_VMA, 0, PAGESIZE);
 
     size_t control = rdmsr(MSR_CODE_IA32_FEATURE_CONTROL);
@@ -104,9 +104,9 @@ static int vmxon() {
         : "memory", "cc");
 
     if (successful) {
-        TRACE("entered vmxon operation\n");
+        TRACE("Entered VMXON operation\n");
     } else {
-        ERR("vmxon operation failed!\n");
+        ERR("VMXON operation failed!\n");
         return 0;
     }
 
@@ -123,12 +123,12 @@ static int has_vmx() {
 
 void init_vmx() {
     if (!has_vmx()) {
-        panic("cpu does not support vmx!");
+        panic("CPU does not support VMX!");
     }
 
-    TRACE("cpu supports vmx\n");
+    TRACE("CPU supports VMX\n");
 
     if (!vmxon()) {
-        panic("Failed to execute vmxon!");
+        panic("Failed to execute VMXON!");
     }
 }

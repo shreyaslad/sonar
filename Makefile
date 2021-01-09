@@ -153,11 +153,12 @@ QFLAGS	=	\
 		-numa		node,cpus=1,nodeid=1		\
 		-numa		node,cpus=2,nodeid=2		\
 		-numa		node,cpus=3,nodeid=3		\
-		-machine	q35							\
-		-device		intel-iommu,aw-bits=48		\
 
-QFLAGS_KVM =	-enable-kvm			\
-				-cpu	host,+vmx	\
+QFLAGS_KVM =	\
+				-enable-kvm						\
+				-cpu		host,+vmx			\
+				-machine	q35					\
+				-device intel-iommu,aw-bits=48	\
 
 LOG		= ${SONAR_BUILD_DIR}/qemu.log
 
