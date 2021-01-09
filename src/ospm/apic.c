@@ -194,7 +194,7 @@ void init_apic() {
     lapic_write(LAPIC_REG_SPUR_INTR, lapic_read(LAPIC_REG_SPUR_INTR) | 0x100);
 
     if (!(rdmsr(IA32_APIC_BASE) & (1 << 11))) {
-        ERR("not properly initialized!\n");
+        ERR("Not properly initialized!\n");
         asm volatile(
             "cli\n\t"
             "hlt\n");
@@ -217,23 +217,23 @@ void init_madt() {
             madt_ptr += *(madt_ptr + 1)) {
                 switch (*(madt_ptr)) {
                     case 0:
-                        TRACE("\tlapic #%u\n", lapic_cnt);
+                        TRACE("\t- LAPIC #%u\n", lapic_cnt);
                         lapics[lapic_cnt++] = (struct madt_lapic_t *)madt_ptr;
                         break;
                     case 1:
-                        TRACE("\tioapic #%u\n", ioapic_cnt);
+                        TRACE("\t- IOAPIC #%u\n", ioapic_cnt);
                         ioapics[ioapic_cnt++] = (struct madt_ioapic *)madt_ptr;
                         break;
                     case 2:
-                        TRACE("\tiso #%u\n", iso_cnt);
+                        TRACE("\t- ISO #%u\n", iso_cnt);
                         isos[iso_cnt++] = (struct madt_iso_t *)madt_ptr;
                         break;
                     case 4:
-                        TRACE("\tnmi #%u\n", nmi_cnt);
+                        TRACE("\t- NMI #%u\n", nmi_cnt);
                         nmis[nmi_cnt++] = (struct madt_nmi_t *)madt_ptr;
                         break;
                     default:
-                        WARN("nothing found\n");
+                        WARN("\t- Nothing found\n");
                         break;
                 }
             }

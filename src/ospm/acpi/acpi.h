@@ -6,6 +6,7 @@
 #include <io.h>
 #include <str.h>
 #include <mem.h>
+#include <mm/vmm.h>
 
 #define ACPI_MAX_TBL_CNT 256
 

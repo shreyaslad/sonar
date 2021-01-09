@@ -46,10 +46,31 @@ void init_acpi(uint64_t rsdp_addr) {
 
     return;
 
-found:
-    if (rsdp->rev >= 2 && rsdp->xsdt_paddr) {
+found: ;
+    struct sdt_t sdt;
+
+    if (rsdp->rev > 0 && rsdp->xsdt_paddr) {
         xsdt = (struct xsdt_t *)((size_t)rsdp->xsdt_paddr + HIGH_VMA);
+        sdt = xsdt->sdt;
     } else {
         rsdt = (struct rsdt_t *)((size_t)rsdp->rsdt_paddr + HIGH_VMA);
+        sdt = rsdt->sdt;
     }
+
+    TRACE("Found the \"%s\"\n", (rsdp->rev > 0) ? "XSDT" : "RSDT");
+
+    /*TRACE("Detected %d ACPI %s tables\n", n_entries, (rsdp->rev > 1) ? "2": "1");
+    TRACE("%-s %-s %-6s %-16s\n", "Signature", "Rev", "OEMID", "Address");
+
+    for (size_t i = 0; i < n_entries; i++) {
+        uint64_t table_paddr = (rsdp->rev > 0) ? xsdt->sdt_ptr[i] : rsdt->sdt_ptr[i];
+        vmm_map(table_paddr + HIGH_VMA, table_paddr, get_pml4(), TABLEPRESENT);
+
+        TRACE("%-s %-d %-s %-#lx\n",
+                sdt.signature,
+                sdt.rev,
+                sdt.oem_id,
+                table_paddr
+        );
+    }*/
 }

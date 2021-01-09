@@ -9,11 +9,7 @@ void init_ospm(struct stivale2_struct_tag_rsdp* rsdp_tag,
     init_madt();
     init_apic();
 
-    struct rsdp_t* rsdp = (struct rsdp_t *)rsdp_addr;
-
-    lai_set_acpi_revision(rsdp->rev);
-    lai_create_namespace();
-    lai_enable_acpi(1);
+    init_pci();
 
     //init_smp(smp);
 }

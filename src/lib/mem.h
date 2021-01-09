@@ -31,6 +31,13 @@ void* memcpy(void* dest, const void* src, size_t size);
 void* memset(void* bufptr, int value, size_t size);
 int memcmp(const void* s1, const void* s2, size_t n);
 
+void memset8(uint8_t *src, uint8_t data, uint64_t count);
+void memset32(uint32_t *src, uint32_t data, uint64_t count);
+void memset64(uint64_t *src, uint64_t data, uint64_t count);
+void memcpy8(uint8_t *dest, uint8_t *src, uint64_t count);
+void memcpy32(uint32_t *dest, uint32_t *src, uint64_t count);
+void memcpy64(uint64_t *dest, uint64_t *src, uint64_t count);
+
 void init_mem(struct stivale2_struct_tag_memmap* memmap);
 
 #endif

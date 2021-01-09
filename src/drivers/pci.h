@@ -5,10 +5,12 @@
 #include <alloc.h>
 #include <locks.h>
 #include <mem.h>
-#include <io.h>
+#include <trace.h>
 #include <vec.h>
 #include <sys/ports.h>
 #include <ospm/acpi/acpi.h>
+
+#define __MODULE__ "pci" 
 
 struct pci_id_t {
     uint8_t class;

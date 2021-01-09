@@ -154,9 +154,10 @@ QFLAGS	=	\
 		-numa		node,cpus=2,nodeid=2		\
 		-numa		node,cpus=3,nodeid=3		\
 		-machine	q35							\
-		-enable-kvm								\
-		-cpu		host,+vmx					\
 		-device		intel-iommu,aw-bits=48		\
+
+QFLAGS_KVM =	-enable-kvm			\
+				-cpu	host,+vmx	\
 
 LOG		= ${SONAR_BUILD_DIR}/qemu.log
 
@@ -165,13 +166,13 @@ all: clean-sonar sonar run
 build: clean-sonar sonar
 
 run:
-	${QEMU} ${QFLAGS} -serial stdio | tee "${LOG}"
+	${QEMU} ${QFLAGS} ${QFLAGS_KVM} -serial stdio | tee "${LOG}"
 
 monitor:
 	${QEMU} ${QFLAGS} -d int -monitor stdio | tee "${LOG}"
 
 debug:
-	${QEMU} ${QFLAGS} -s -S -no-shutdown -no-reboot
+	${QEMU} ${QFLAGS} ${QFLAGS_KVM} -s -S -no-shutdown -no-reboot
 	${GDB} -ex "target remote localhost:1234" -ex "symbol-file ${SONAR_KNL_TARGET}"
 
 sonar:

@@ -4,6 +4,9 @@
 #include <drivers/vesa.h>
 #include <virt/intel/vmx/vmx.h>
 #include <ospm/ospm.h>
+#include <font.h>
+
+#define __MODULE__ "init"
 
 __attribute__((noreturn))
 void sonar_main(struct stivale2_struct* info) {

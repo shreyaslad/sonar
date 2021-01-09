@@ -31,10 +31,46 @@ int memcmp(const void* s1, const void* s2, size_t n) {
     return 0;
 }
 
-void init_mem(struct stivale2_struct_tag_memmap* memmap) {
-    TRACE("Memory Map:\n");
+void memset8(uint8_t *src, uint8_t data, uint64_t count) {
+    for(uint64_t i = 0; i < count; i++) {
+        *src++ = data;
+    }       
+}
 
-    struct stivale2_mmap_entry* entry = (struct mmap_entry_t *)memmap->memmap;
+void memset32(uint32_t *src, uint32_t data, uint64_t count) {
+    for (uint64_t i = 0; i < count; i++)
+        *src++ = data;
+}
+
+void memset64(uint64_t *src, uint64_t data, uint64_t count) {
+    for (uint64_t i = 0; i < count; i++)
+        *src++ = data;
+}
+
+void memcpy8(uint8_t *dest, uint8_t *src, uint64_t count) {
+    for(uint64_t i = 0; i < count; i++) {
+        dest[i] = src[i];
+    }
+}
+
+void memcpy32(uint32_t *dest, uint32_t *src, uint64_t count) {
+    for(uint64_t i = 0; i < count; i++) {
+        dest[i] = src[i];
+    }
+}
+
+void memcpy64(uint64_t *dest, uint64_t *src, uint64_t count) {
+    for(uint64_t i = 0; i < count; i++) {
+        dest[i] = src[i];
+    }
+}
+
+void init_mem(struct stivale2_struct_tag_memmap* memmap) {
+    TRACE("Parsing Memory Map:\n");
+
+    struct stivale2_mmap_entry* entry = (struct stivale2_mmap_entry *)memmap->memmap;
+
+    uint64_t usable_mem = 0;
 
     for (uint64_t i = 0; i < memmap->entries; i++) {
         totalmem += entry[i].length;
@@ -49,13 +85,15 @@ void init_mem(struct stivale2_struct_tag_memmap* memmap) {
     memset(pmm_bitmap, 0, totalmem / PAGESIZE / 8);
 
     for (uint64_t i = 0; i < memmap->entries; i++) {
-        TRACE("\t%#016x - %#016x: ",
+        TRACE("\t%#08x - %#08x: ",
                 entry[i].base,
                 entry[i].base + entry[i].length);
 
         switch (entry[i].type) {
             case STIVALE2_MMAP_USABLE:
                 printf("usable\n");
+                usable_mem += entry[i].length;
+                
                 break;
             case STIVALE2_MMAP_RESERVED:
                 printf("reserved\n");
@@ -82,5 +120,5 @@ void init_mem(struct stivale2_struct_tag_memmap* memmap) {
         }
     }
 
-    TRACE("Available memory: %uGiB\n", totalmem / 1073741824);
+    TRACE("Detected %d MiB of usable memory\n", usable_mem / 1048576);
 }
