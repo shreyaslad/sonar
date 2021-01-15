@@ -36,17 +36,23 @@ void clear_screen(struct color_t* color) {
 
 void vesa_scroll() {
     uint32_t* fb = (uint32_t *)(fb_info->framebuffer_addr);
+
     uint64_t fb_height = fb_info->framebuffer_height;
     uint64_t fb_pitch = fb_info->framebuffer_pitch;
-    uint64_t fb_size = fb_height * fb_pitch;
 
-    for (size_t i = 1; i < fb_height; i++) {
-        uint32_t* dst = fb + ((i - 1) * fb_pitch * FONT_HEIGHT);
-        uint32_t* src = fb + (i * fb_pitch * FONT_HEIGHT);
-        memcpy(dst, src, fb_pitch * FONT_HEIGHT);
+    uint64_t screen_height = fb_height / FONT_HEIGHT;
+    uint64_t screen_pitch = fb_pitch / 4;
+
+    for (uint64_t i = 1; i < screen_height; i++) {
+        uint32_t* dest = fb + ((i - 1) * screen_pitch * FONT_HEIGHT);
+        uint32_t* src = fb + (i * screen_pitch * FONT_HEIGHT);
+        memcpy(dest, src, fb_pitch * FONT_HEIGHT);
     }
 
-    memset(fb + fb_size - (fb_pitch * FONT_HEIGHT), 0, fb_pitch * FONT_HEIGHT);
+    memset(fb + ((screen_height - 1) * screen_pitch * FONT_HEIGHT), 0, fb_pitch * FONT_HEIGHT);
+
+    curx = 0;
+    cury = screen_height;
 }
 
 void plot_char(char c, uint32_t x, uint32_t y, struct color_t* fg, struct color_t* bg) {
