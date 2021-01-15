@@ -1,8 +1,5 @@
 #include <ospm/acpi/acpi.h>
 
-#undef __MODULE__
-#define __MODULE__ "acpi"
-
 static struct rsdp_t* rsdp;
 static struct rsdt_t* rsdt;
 static struct xsdt_t* xsdt;
@@ -56,9 +53,7 @@ found: ;
         rsdt = (struct rsdt_t *)((size_t)rsdp->rsdt_paddr + HIGH_VMA);
         sdt = rsdt->sdt;
     }
-
-    TRACE("REV: %d\n", rsdp->rev);
-
+    
     TRACE("Found the \"%s\"\n", (rsdp->rev > 0) ? "XSDT" : "RSDT");
 
     /*TRACE("Detected %d ACPI %s tables\n", n_entries, (rsdp->rev > 1) ? "2": "1");

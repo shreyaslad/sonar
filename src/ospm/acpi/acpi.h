@@ -8,6 +8,8 @@
 #include <mem.h>
 #include <mm/vmm.h>
 
+#define __MODULE__ "acpi"
+
 #define ACPI_MAX_TBL_CNT 256
 
 struct sdt_t {
