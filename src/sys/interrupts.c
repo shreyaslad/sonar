@@ -135,6 +135,7 @@ void isr_handler(struct regs_t* regs) {
             cr2);
 
         stacktrace(regs->rbp);
+        
         asm volatile("hlt");
     }
 
