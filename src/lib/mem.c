@@ -1,68 +1,53 @@
 #include <lib/mem.h>
 
-void* memset(void* bufptr, int value, size_t size) {
-    unsigned char* buf = (unsigned char*)bufptr;
-    for (uint64_t i = 0; i < size; i++) {
-        buf[i] = value;
-    }
+void* memset(void* s, int c, size_t n) {
+    uint8_t* buf = (uint8_t*)s;
 
-    return bufptr;
-}
+    for(size_t i = 0; i < n; i++)
+        buf[i] = (uint8_t)c;
 
-void* memcpy(void* dest, const void* src, size_t size) {
-    const unsigned char* src2 = (const unsigned char*)src;
-    unsigned char* dst = (unsigned char*)dest;
-    for (uint64_t i = 0; i < size; i++) {
-        dst[i] = src2[i];
-    }
-    return dst;
+    return s;
 }
 
 int memcmp(const void* s1, const void* s2, size_t n) {
-    const uint8_t* p1 = s1;
-    const uint8_t* p2 = s2;
+    const uint8_t* a = (const uint8_t*)s1;
+    const uint8_t* b = (const uint8_t*)s2;
 
-    for (size_t i = 0; i < n; i++) {
-        if (p1[i] != p2[i]) {
-            return p1[i] < p2[i] ? -1 : 1;
-        }
+    for(size_t i = 0; i < n; i++) {
+        if(a[i] < b[i])
+            return -1;
+        else if(b[i] < a[i])
+            return 1;
     }
 
     return 0;
 }
 
-void memset8(uint8_t *src, uint8_t data, uint64_t count) {
-    for(uint64_t i = 0; i < count; i++) {
-        *src++ = data;
-    }       
+void* memcpy(void* dst, const void* src, size_t n) {
+    uint8_t* _dst = (uint8_t*)dst;
+    const uint8_t* _src = (const uint8_t*)src;
+
+    for(size_t i = 0; i < n; i++)
+        _dst[i] = _src[i];
+    
+    return dst;
 }
 
-void memset32(uint32_t *src, uint32_t data, uint64_t count) {
-    for (uint64_t i = 0; i < count; i++)
-        *src++ = data;
-}
+void* memmove(void* dest, const void* src, size_t n) {
+    uint8_t* pdest = dest;
+    const uint8_t* psrc = src;
 
-void memset64(uint64_t *src, uint64_t data, uint64_t count) {
-    for (uint64_t i = 0; i < count; i++)
-        *src++ = data;
-}
-
-void memcpy8(uint8_t *dest, uint8_t *src, uint64_t count) {
-    for(uint64_t i = 0; i < count; i++) {
-        dest[i] = src[i];
+    if (src > dest) {
+        for (size_t i = 0; i < n; i++) {
+            pdest[i] = psrc[i];
+        }
+    } else if (src < dest) {
+        for (size_t i = n; i > 0; i--) {
+            pdest[i - 1] = psrc[i - 1];
+        }
     }
-}
 
-void memcpy32(uint32_t *dest, uint32_t *src, uint64_t count) {
-    for(uint64_t i = 0; i < count; i++) {
-        dest[i] = src[i];
-    }
-}
-
-void memcpy64(uint64_t *dest, uint64_t *src, uint64_t count) {
-    for(uint64_t i = 0; i < count; i++) {
-        dest[i] = src[i];
-    }
+    return dest;
 }
 
 void init_mem(struct stivale2_struct_tag_memmap* memmap) {
