@@ -1,46 +1,176 @@
 #include <drivers/pci.h>
 
-struct pci_cfg_desc_t {
-    uint64_t base;
-    uint16_t segment;
-    uint8_t start_bus;
-    uint8_t end_bus;
-    uint32_t reserved;
-} __attribute__((packed));
+#define MAX_FUNCTION    8
+#define MAX_DEVICE      32
+#define MAX_BUS         256
 
-struct acpi_mcfg_t {
-    struct sdt_t sdt;
+struct pci_device_t* pci_devices;
 
-    uint64_t reserved;
-    struct pci_cfg_desc_t descs[1];
-} __attribute__((packed));
+size_t available_devices = 0;
 
-static struct vector_t* devices;
-static struct vector_t* handlers;
+#define BYTE    0
+#define WORD    1
+#define DWORD   2
 
-static uint16_t pci_cfg_desc_cnt;
-static struct pci_cfg_desc_t* cfg_descs;
+static void pci_check_bus(uint8_t, int64_t);
+static char* get_dev_type(uint8_t class, uint8_t subclass, uint8_t prog_if);
 
-uint32_t pci_pio_read_dword(uint8_t bus, uint8_t device, uint8_t function, uint8_t reg) {
-    uint32_t pci_cfg_addr = (1 << 31)                               |
-                            ((uint32_t)bus << 16)                   |
-                            (((uint32_t)device & 0b11111) << 11)    |
-                            (((uint32_t)function & 0b111) << 8)     |
-                            (reg & ~(0b11));
-
-    outd(0xcf8, pci_cfg_addr);
-    return ind(0xcfc);
+static void get_address(struct pci_device_t* device, uint32_t offset) {
+    uint32_t address = (device->bus << 16) | (device->device << 11) | (device->func << 8)
+        | (offset & ~((uint32_t)(3))) | 0x80000000;
+    outd(0xcf8, address);
 }
 
-void pci_pio_write_dword(uint8_t bus, uint8_t device, uint8_t function, uint8_t reg, uint32_t data) {
-    uint32_t pci_cfg_addr = (1 << 31)                               |
-                            ((uint32_t)bus << 16)                   |
-                            (((uint32_t)device & 0b11111) << 11)    |
-                            (((uint32_t)function & 0b111) << 8)     |
-                            (reg & ~(0b11));
+uint8_t pci_read_device_byte(struct pci_device_t* device, uint32_t offset) {
+    get_address(device, offset);
+    return ind(0xcfc + (offset & 3));
+}
 
-    outd(0xcf8, pci_cfg_addr);
-    outd(0xcfc, data);
+void pci_write_device_byte(struct pci_device_t* device, uint32_t offset, uint8_t value) {
+    get_address(device, offset);
+    outb(0xcfc + (offset & 3), value);
+}
+
+uint16_t pci_read_device_word(struct pci_device_t* device, uint32_t offset) {
+    get_address(device, offset);
+    return inw(0xcfc + (offset & 3));
+}
+
+void pci_write_device_word(struct pci_device_t* device, uint32_t offset, uint16_t value) {
+    get_address(device, offset);
+    outw(0xcfc + (offset & 3), value);
+}
+
+uint32_t pci_read_device_dword(struct pci_device_t* device, uint32_t offset) {
+    get_address(device, offset);
+    return ind(0xcfc + (offset & 3));
+}
+
+void pci_write_device_dword(struct pci_device_t* device, uint32_t offset, uint32_t value) {
+    get_address(device, offset);
+    outd(0xcfc + (offset & 3), value);
+}
+
+int pci_read_bar(struct pci_device_t* device, int bar, struct pci_bar_t* out) {
+    if (bar > 5) {
+        return -1;
+    }
+
+    size_t reg_index = 0x10 + bar * 4;
+    uint64_t bar_low = pci_read_device_dword(device, reg_index), bar_size_low;
+    uint64_t bar_high = 0, bar_size_high = 0;
+
+    if (!bar_low) {
+        return -1;
+    }
+
+    uintptr_t base;
+    size_t size;
+
+    int is_mmio = !(bar_low & 1);
+    int is_prefetchable = is_mmio && bar_low & (1 << 3);
+    int is_64bit = is_mmio && ((bar_low >> 1) & 0b11) == 0b10;
+
+    if (is_64bit) {
+        bar_high = pci_read_device_dword(device, reg_index + 4);
+    }
+
+    base = ((bar_high << 32) | bar_low) & ~(is_mmio ? (0b1111) : (0b11));
+
+    pci_write_device_dword(device, reg_index, 0xFFFFFFFF);
+    bar_size_low = pci_read_device_dword(device, reg_index);
+    pci_write_device_dword(device, reg_index, bar_low);
+
+    if (is_64bit) {
+        pci_write_device_dword(device, reg_index + 4, 0xFFFFFFFF);
+        bar_size_high = pci_read_device_dword(device, reg_index + 4);
+        pci_write_device_dword(device, reg_index + 4, bar_high);
+    }
+
+    size = ((bar_size_high << 32) | bar_size_low) & ~(is_mmio ? (0b1111) : (0b11));
+    size = ~size + 1;
+
+    if (out) {
+        *out = (struct pci_bar_t){base, size, is_mmio, is_prefetchable};
+    }
+
+    return 0;
+}
+
+
+void pci_enable_busmastering(struct pci_device_t* device) {
+    if (!(pci_read_device_dword(device, 0x4) & (1 << 2))) {
+        pci_write_device_dword(device, 0x4, pci_read_device_dword(device, 0x4) | (1 << 2));
+    }
+}
+
+struct pci_device_t* pci_get_device_by_vendor(uint16_t vendor, uint16_t id, size_t index) {
+    for (size_t i = 0; i < stbds_arrlen(pci_devices); i++) {
+        struct pci_device_t* dev = &pci_devices[i];
+        
+        if (dev->vendor_id == vendor && dev->device_id == id) {
+            return dev;
+        }
+    }
+
+    return 0;
+}
+
+static void pci_check_function(uint8_t bus, uint8_t slot, uint8_t func, int64_t parent) {
+    struct pci_device_t device = {0};
+    device.bus = bus;
+    device.func = func;
+    device.device = slot;
+
+    uint32_t config_0 = pci_read_device_dword(&device, 0);
+
+    if (config_0 == 0xffffffff) {
+        return;
+    }
+
+    uint32_t config_8 = pci_read_device_dword(&device, 0x8);
+    uint32_t config_c = pci_read_device_dword(&device, 0xc);
+    uint32_t config_3c = pci_read_device_dword(&device, 0x3c);
+
+    device.parent = parent;
+    device.device_id = (uint16_t)(config_0 >> 16);
+    device.vendor_id = (uint16_t)config_0;
+    device.rev_id = (uint8_t)config_8;
+    device.subclass = (uint8_t)(config_8 >> 16);
+    device.device_class = (uint8_t)(config_8 >> 24);
+    device.prog_if = (uint8_t)(config_8 >> 8);
+    device.irq_pin = (uint8_t)(config_3c >> 8);
+
+    if (config_c & 0x800000) {
+        device.multifunction = 1;
+    } else {
+        device.multifunction = 0;
+    }
+
+    available_devices++;
+    stbds_arrput(pci_devices, device);
+    TRACE("\t- %d:%d.%d: %s\n", bus, slot, func,
+            get_dev_type(device.device_class, device.subclass, device.prog_if));
+
+    size_t id = available_devices;
+
+
+    if (device.device_class == 0x06 && device.subclass == 0x04) {
+        // pci to pci bridge
+        struct pci_device_t device = pci_devices[id];
+
+        // find devices attached to this bridge
+        uint32_t config_18 = pci_read_device_dword(&device, 0x18);
+        pci_check_bus((config_18 >> 8) & 0xFF, id);
+    }
+}
+
+static void pci_check_bus(uint8_t bus, int64_t parent) {
+    for (size_t dev = 0; dev < MAX_DEVICE; dev++) {
+        for (size_t func = 0; func < MAX_FUNCTION; func++) {
+            pci_check_function(bus, dev, func, parent);
+        }
+    }
 }
 
 static char* get_dev_type(uint8_t class, uint8_t subclass, uint8_t prog_if) {
@@ -182,58 +312,27 @@ static char* get_dev_type(uint8_t class, uint8_t subclass, uint8_t prog_if) {
     }
 }
 
-static uint32_t* pci_cfg_space(uint16_t bus, uint16_t dev, uint16_t func) {
-    for (int i = 0; i < pci_cfg_desc_cnt; i++) {
-        struct pci_cfg_desc_t* cfg = &cfg_descs[i];
+static void pci_init_root_bus() {
+    struct pci_device_t device = {0};
+    uint32_t config_c = pci_read_device_dword(&device, 0xc);
+    uint32_t config_0;
 
-        if (bus >= cfg->start_bus && bus < cfg->end_bus) {
-            return (uint32_t*)(cfg->base + ((bus - cfg->start_bus) << 20 | dev << 15 | func << 12));
-        }
-    }
-
-    return NULL;
-}
-
-static void pci_enumerate() {
-    TRACE("Enumerating PCI Devices:\n");
-
-    for (uint16_t bus = 0; bus < 256; bus++) {
-        if (!pci_cfg_space(bus, 0, 0)) {
-            continue;
-        }
-
-        for (uint16_t dev = 0; dev < 256; dev++) {
-            for (uint8_t func = 0; func < 8; func++) {
-                uint32_t* cfg_space = pci_cfg_space(bus, dev, func);
-
-                uint32_t vid_pid = cfg_space[0];
-
-                if (vid_pid == 0xFFFFFFFF)
-                    continue;
-                    
-                uint16_t c_sub = cfg_space[2] >> 16;
-
-                struct pci_dev_t* device = kmalloc(sizeof(struct pci_dev_t));
-                device->bus = bus;
-                device->device = dev;
-                device->function = func;
-                device->cfg_space = cfg_space;
-                vec_a(devices, device);
-
-                TRACE("\t- %d:%d.%d: %s\n", bus, dev, func, get_dev_type(c_sub >> 8, c_sub, cfg_space[2]));
+    if (!(config_c & 0x800000)) {
+        pci_check_bus(0, -1);
+    } else {
+        for (size_t func = 0; func < MAX_FUNCTION; func++) {
+            device.func = func;
+            config_0 = pci_read_device_dword(&device, 0);
+            if (config_0 == 0xffffffff) {
+                continue;
             }
+
+            pci_check_bus(func, -1);
         }
     }
 }
 
 void init_pci() {
-    devices = kmalloc(sizeof(struct vector_t)) + HIGH_VMA;
-    handlers = kmalloc(sizeof(struct vector_t)) + HIGH_VMA;
-    vec_n(devices);
-
-    struct acpi_mcfg_t* mcfg = find_sdt("MCFG", 0);
-    pci_cfg_desc_cnt = (mcfg->sdt.len - sizeof(struct sdt_t)) / sizeof(struct pci_cfg_desc_t);
-    cfg_descs = mcfg->descs;
-
-    pci_enumerate();
+    TRACE("Enumerated devices:\n");
+    pci_init_root_bus();
 }

@@ -74,36 +74,73 @@ void laihost_outd(uint16_t port, uint32_t value) {
 uint8_t laihost_pci_readb(uint16_t seg, uint8_t bus, uint8_t device, uint8_t function, uint16_t offset) {
     (void)seg;
 
-    return pci_pio_read_dword(bus, device, function, (uint8_t)offset);
+    struct pci_device_t pci_dev = {
+        .bus = bus,
+        .device = device,
+        .func = function
+    };
+
+    return pci_read_device_byte(&pci_dev, offset);
 }
 
 void laihost_pci_writeb(uint16_t seg, uint8_t bus, uint8_t device, uint8_t function, uint16_t offset, uint8_t value) {
     (void)seg;
 
-    pci_pio_write_dword(bus, device, function, (uint16_t)offset, (uint8_t)value);
+    struct pci_device_t pci_dev = {
+        .bus = bus,
+        .device = device,
+        .func = function
+    };
+
+    pci_write_device_byte(&pci_dev, offset, value);
 }
 
 uint16_t laihost_pci_readw(uint16_t seg, uint8_t bus, uint8_t device, uint8_t function, uint16_t offset) {
     (void)seg;
 
-    return pci_pio_read_dword(bus, device, function, (uint8_t)offset);
+    struct pci_device_t pci_dev = {
+        .bus = bus,
+        .device = device,
+        .func = function
+    };
+
+    return pci_read_device_word(&pci_dev, offset);
 }
 
 void laihost_pci_writew(uint16_t seg, uint8_t bus, uint8_t device, uint8_t function, uint16_t offset, uint16_t value) {
     (void)seg;
-    pci_pio_write_dword(bus, device, function, offset, (uint16_t)value);
+    
+    struct pci_device_t pci_dev = {
+        .bus = bus,
+        .device = device,
+        .func = function
+    };
+
+    pci_write_device_word(&pci_dev, offset, value);
 }
 
 uint32_t laihost_pci_readd(uint16_t seg, uint8_t bus, uint8_t device, uint8_t function, uint16_t offset) {
     (void)seg;
 
-    return pci_pio_read_dword(bus, device, function, offset);
+    struct pci_device_t pci_dev = {
+        .bus = bus,
+        .device = device,
+        .func = function
+    };
+
+    return pci_read_device_dword(&pci_dev, offset);
 }
 
 void laihost_pci_writed(uint16_t seg, uint8_t bus, uint8_t device, uint8_t function, uint16_t offset, uint32_t value) {
     (void)seg;
 
-    pci_pio_write_dword(bus, device, function, offset, value);
+    struct pci_device_t pci_dev = {
+        .bus = bus,
+        .device = device,
+        .func = function
+    };
+
+    pci_write_device_dword(&pci_dev, offset, value);
 }
 
 void* laihost_map(size_t paddr, size_t count) {

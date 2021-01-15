@@ -1,15 +1,15 @@
 default: all
 
-.PHONY:	all				\
-		build			\
-		run				\
-		debug			\
-		deps			\
+.PHONY:	all	\
+		build	\
+		run	\
+		debug	\
+		deps	\
 		sonar-kernel	\
-		test-kernel		\
-		clean-all		\
-		clean-sonar		\
-		clean-test		\
+		test-kernel	\
+		clean-all	\
+		clean-sonar	\
+		clean-test	\
 
 ###########
 # Tooling #
@@ -17,9 +17,9 @@ default: all
 
 export	\
 		ARCH	\
-		CC		\
-		LD		\
-		AS		\
+		CC	\
+		LD	\
+		AS	\
 
 ARCH	= x86_64
 
@@ -35,8 +35,8 @@ GDB		= gdb
 #########################
 
 export	\
-		DIR			\
-		SRC_DIR		\
+		DIR	\
+		SRC_DIR	\
 		TEST_DIR	\
 		BUILD_DIR	\
 
@@ -51,12 +51,12 @@ BUILD_DIR	= ${DIR}/build
 ###########
 
 export	\
-		SONAR_BUILD_DIR		\
+		SONAR_BUILD_DIR	\
 		SONAR_KNL_TARGET	\
 		SONAR_IMG_TARGET	\
 		SONAR_MNT_TARGET	\
-		TEST_BUILD_DIR		\
-		TEST_KNL_TARGET		\
+		TEST_BUILD_DIR	\
+		TEST_KNL_TARGET	\
 
 KERNEL_DIR			= ${BUILD_DIR}/kernels
 
@@ -74,18 +74,18 @@ TEST_KNL_TARGET		= ${TEST_BUILD_DIR}/ktest.elf
 ################
 
 export	\
-		DEPS_DIR		\
-		LIMINE_DIR		\
-		LIMINE_REPO		\
+		DEPS_DIR	\
+		LIMINE_DIR	\
+		LIMINE_REPO	\
 		LIMINE_BRANCH	\
 		BDDISASM_DIR	\
 		BDDISASM_REPO	\
 		BDDISASM_BRANCH	\
-		LAI_DIR			\
+		LAI_DIR	\
 		LAI_HEADER_DIR	\
 		LAI_COMPILE_DIR	\
-		LAI_REPO		\
-		LAI_BRANCH		\
+		LAI_REPO	\
+		LAI_BRANCH	\
 
 DEPS_DIR		= ${BUILD_DIR}/deps
 
@@ -114,51 +114,55 @@ export	\
 
 CFLAGS	=	\
 		-target	${ARCH}-unknown-none	\
-		-ggdb							\
-		-nostdlib						\
-		-fno-stack-protector			\
-		-nostartfiles					\
-		-nodefaultlibs					\
-		-Wall							\
-		-Wextra							\
-		-Wpedantic						\
-		-ffreestanding					\
-		-std=gnu11						\
-		-mcmodel=kernel					\
-		-fno-pic						\
-		-mno-red-zone					\
-		-mno-sse						\
-		-mno-sse2						\
-		-fasm-blocks					\
-		#-fsanitize=undefined			\
+		-ggdb	\
+		-nostdlib	\
+		-fno-stack-protector	\
+		-nostartfiles	\
+		-nodefaultlibs	\
+		-Wall	\
+		-Wextra	\
+		-Wpedantic	\
+		-ffreestanding	\
+		-std=gnu11	\
+		-mcmodel=kernel	\
+		-fno-pic	\
+		-mno-red-zone	\
+		-mno-sse	\
+		-mno-sse2	\
+		-fasm-blocks	\
+		#-fsanitize=undefined	\
 
 O_LEVEL	=	\
 		2	\
 
 LDFLAGS	=	\
-		-no-pie					\
-		-ffreestanding			\
-		-O${O_LEVEL}			\
-		-nostdlib				\
+		-no-pie	\
+		-ffreestanding	\
+		-O${O_LEVEL}	\
+		-nostdlib	\
 		-z max-page-size=0x1000	\
-		-T linker.ld			\
+		-T linker.ld	\
 
 QFLAGS	=	\
-		-name sonar								\
-		-m			3G							\
-		-boot		menu=off					\
-		-hda		${SONAR_IMG_TARGET}			\
-		-smp		cpus=4						\
-		-numa		node,cpus=0,nodeid=0		\
-		-numa		node,cpus=1,nodeid=1		\
-		-numa		node,cpus=2,nodeid=2		\
-		-numa		node,cpus=3,nodeid=3		\
+		-name 		sonar	\
+		-m			3G	\
+		-boot		menu=off	\
+		-hda		${SONAR_IMG_TARGET}	\
+		-smp		cpus=4	\
+		-numa		node,cpus=0,nodeid=0	\
+		-numa		node,cpus=1,nodeid=1	\
+		-numa		node,cpus=2,nodeid=2	\
+		-numa		node,cpus=3,nodeid=3	\
+		-device		intel-iommu,aw-bits=48	\
+		#-device		qemu-xhci	\
+		#-device		id=foo,file=${SONAR_IMG_TARGET},format=raw,if=none	\
+		#-device		usb-storage,drive=foo	\
 
 QFLAGS_KVM =	\
-				-enable-kvm						\
-				-cpu		host,+vmx			\
-				-machine	q35					\
-				-device intel-iommu,aw-bits=48	\
+				-enable-kvm	\
+				-cpu		host,+vmx	\
+				-machine	q35	\
+				
 
 LOG		= ${SONAR_BUILD_DIR}/qemu.log
 
