@@ -1,4 +1,4 @@
-#include <drivers/vesa.h>
+#include <drivers/display/vesa.h>
 
 struct stivale2_struct_tag_framebuffer* fb_info;
 
@@ -80,21 +80,26 @@ void plot_char(char c, uint32_t x, uint32_t y, struct color_t* fg, struct color_
 void put(char c) {
     if (c == '\n') {
         curx = 0;
+        cury++;
 
-        if (cury + 1 >= fb_info->framebuffer_height / FONT_HEIGHT) {
+        if (cury >= (fb_info->framebuffer_height / FONT_HEIGHT)) {
             vesa_scroll();
-        } else {
-            cury++;
+            cury--;
         }
     } else if (c == '\t') {
         curx += 3;
     } else {
         plot_char(c, curx, cury, &fg, &bg);
-        curx += 1;
+        curx++;
 
         if (curx >= (fb_info->framebuffer_width / FONT_WIDTH)) {
-            curx = 1;
-            cury += 1;
+            curx = 0;
+            cury++;
+
+            if (cury >= (fb_info->framebuffer_height / FONT_HEIGHT)) {
+                vesa_scroll();
+                cury--;
+            }
         }
     }
 }
@@ -114,6 +119,4 @@ void init_vesa(struct stivale2_struct_tag_framebuffer* fb) {
     for (int i = fb->framebuffer_addr; i < fb->framebuffer_addr + fb_size; i += PAGESIZE) {
         vmm_map(i + HIGH_VMA, i, get_pml4(), TABLEPRESENT | TABLEWRITE);
     }
-
-    TRACE("Detected a %lux%lu display\n", fb->framebuffer_width, fb->framebuffer_height);
 }

@@ -1,4 +1,4 @@
-#include <drivers/serial.h>
+#include <drivers/display/serial.h>
 
 #define PORT 0x3F8 /* COM1 */
 
