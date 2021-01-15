@@ -7,7 +7,7 @@
 #include <str.h>
 #include <alloc.h>
 #include <lib/mem.h>
-#include <drivers/vesa.h>
+#include <drivers/display/vesa.h>
 #include <protos/stivale2.h>
 
 ///////////////////////////////////////////////////////////////////////////////

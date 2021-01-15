@@ -217,23 +217,23 @@ void init_madt() {
             madt_ptr += *(madt_ptr + 1)) {
                 switch (*(madt_ptr)) {
                     case 0:
-                        TRACE("\t- LAPIC #%u\n", lapic_cnt);
+                        TRACE("-\tLAPIC #%u\n", lapic_cnt);
                         lapics[lapic_cnt++] = (struct madt_lapic_t *)madt_ptr;
                         break;
                     case 1:
-                        TRACE("\t- IOAPIC #%u\n", ioapic_cnt);
+                        TRACE("-\tIOAPIC #%u\n", ioapic_cnt);
                         ioapics[ioapic_cnt++] = (struct madt_ioapic *)madt_ptr;
                         break;
                     case 2:
-                        TRACE("\t- ISO #%u\n", iso_cnt);
+                        TRACE("-\tISO #%u\n", iso_cnt);
                         isos[iso_cnt++] = (struct madt_iso_t *)madt_ptr;
                         break;
                     case 4:
-                        TRACE("\t- NMI #%u\n", nmi_cnt);
+                        TRACE("-\tNMI #%u\n", nmi_cnt);
                         nmis[nmi_cnt++] = (struct madt_nmi_t *)madt_ptr;
                         break;
                     default:
-                        WARN("\t- Nothing found\n");
+                        WARN("-\tNothing found\n");
                         break;
                 }
             }

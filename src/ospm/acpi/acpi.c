@@ -11,7 +11,7 @@ void* find_sdt(const char* signature, int idx) {
         for (size_t i = 0; i < (xsdt->sdt.len - sizeof(struct sdt_t)) / 8; i++) {
             struct sdt_t* ptr = (struct sdt_t *)((size_t)xsdt->sdt_ptr[i] + HIGH_VMA);
 
-            if (!strncmp(ptr->signature, signature, 4)) {
+            if (!strncmp(ptr->sig, signature, 4)) {
                 if (cnt++ == idx) {
                     return (void *)ptr;
                 }
@@ -21,7 +21,7 @@ void* find_sdt(const char* signature, int idx) {
         for (size_t i = 0; i < (rsdt->sdt.len - sizeof(struct sdt_t)) / 4; i++) {
             struct sdt_t* ptr = (struct sdt_t *)((size_t)rsdt->sdt_ptr[i] + HIGH_VMA);
 
-            if (!strncmp(ptr->signature, signature, 4)) {
+            if (!strncmp(ptr->sig, signature, 4)) {
                 if (cnt++ == idx) {
                     return (void *)ptr;
                 }
@@ -54,20 +54,27 @@ found: ;
         sdt = rsdt->sdt;
     }
     
-    TRACE("Found the \"%s\"\n", (rsdp->rev > 0) ? "XSDT" : "RSDT");
+    TRACE("Found the \"%s\" at %#lx\n",
+            (rsdp->rev > 0) ? "XSDT" : "RSDT",
+            (rsdp->rev > 0) ? 
+                rsdp->rsdt_paddr + HIGH_VMA : rsdp->xsdt_paddr + HIGH_VMA);
 
-    /*TRACE("Detected %d ACPI %s tables\n", n_entries, (rsdp->rev > 1) ? "2": "1");
-    TRACE("%-s %-s %-6s %-16s\n", "Signature", "Rev", "OEMID", "Address");
+    size_t n_entries = (sdt.len - sizeof(struct sdt_t)) / ((rsdp->rev > 0) ? 8 : 4);
+
+    TRACE("Detected %d ACPI rev %s tables:\n", n_entries, (rsdp->rev > 1) ? "2": "1");
+    TRACE("\t%8s %3s %5s %11s\n", "Signature", "Rev", "OEMID", "Address");
 
     for (size_t i = 0; i < n_entries; i++) {
         uint64_t table_paddr = (rsdp->rev > 0) ? xsdt->sdt_ptr[i] : rsdt->sdt_ptr[i];
         vmm_map(table_paddr + HIGH_VMA, table_paddr, get_pml4(), TABLEPRESENT);
 
-        TRACE("%-s %-d %-s %-#lx\n",
-                sdt.signature,
-                sdt.rev,
-                sdt.oem_id,
+        struct sdt_t* c = (struct sdt_t *)table_paddr;
+
+        TRACE("-\t%5c%c%c%c %3d %c%c%c%c%c%c %#0lx\n",
+                c->sig[0], c->sig[1], c->sig[2], c->sig[3],
+                c->rev,
+                c->oid[0], c->oid[1], c->oid[2], c->oid[3], c->oid[4], c->oid[5],
                 table_paddr
         );
-    }*/
+    }
 }

@@ -1,5 +1,10 @@
 #include <trace.h>
 
+void enable_early_log(struct stivale2_struct_tag_framebuffer* fb) {
+    init_serial();
+    init_vesa(fb);
+}
+
 char* trace_addr(size_t* offset, size_t addr) {
     for (size_t i = 0; ; i++) {
         if (symlist[i].addr >= addr) {

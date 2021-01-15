@@ -149,7 +149,7 @@ static void pci_check_function(uint8_t bus, uint8_t slot, uint8_t func, int64_t 
 
     available_devices++;
     stbds_arrput(pci_devices, device);
-    TRACE("\t- %d:%d.%d: %s\n", bus, slot, func,
+    TRACE("-\t%d:%d.%d: %s\n", bus, slot, func,
             get_dev_type(device.device_class, device.subclass, device.prog_if));
 
     size_t id = available_devices;

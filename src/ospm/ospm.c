@@ -11,5 +11,5 @@ void init_ospm(struct stivale2_struct_tag_rsdp* rsdp_tag,
 
     init_pci();
 
-    //init_smp(smp);
+    init_smp(smp_tag);
 }

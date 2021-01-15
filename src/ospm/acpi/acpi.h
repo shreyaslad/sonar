@@ -13,15 +13,15 @@
 #define ACPI_MAX_TBL_CNT 256
 
 struct sdt_t {
-    char signature[4];
+    char sig[4];
     uint32_t len;
     uint8_t rev;
     uint8_t csum;
-    char oem_id[6];
-    char oem_table_id[8];
-    uint32_t oem_rev;
-    uint32_t creator_id;
-    uint32_t creator_rev;
+    char oid[6];
+    char oid_table[8];
+    uint32_t orev;
+    uint32_t cid;
+    uint32_t crev;
 } __attribute__((packed));
 
 struct rsdp_t {

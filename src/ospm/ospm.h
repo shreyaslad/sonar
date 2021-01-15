@@ -11,6 +11,7 @@
 
 #define __MODULE__ "ospm"
 
-void init_ospm();
+void init_ospm(struct stivale2_struct_tag_rsdp* rsdp_tag,
+               struct stivale2_struct_tag_smp* smp_tag);
 
 #endif

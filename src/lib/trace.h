@@ -3,6 +3,9 @@
 #define __DEBUG_H__
 
 #include <io.h>
+#include <protos/stivale2.h>
+#include <drivers/display/serial.h>
+#include <drivers/display/vesa.h>
 #include <sys/symlist.h>
 
 // stolen from the tomat
@@ -17,6 +20,8 @@
 #define TRACE(fmt, ...) PRN("[*]", fmt, ## __VA_ARGS__)
 #define WARN(fmt, ...)  PRN("[-]", fmt, ## __VA_ARGS__)
 #define ERR(fmt, ...)   PRN("[!]", fmt, ## __VA_ARGS__)
+
+void enable_early_log(struct stivale2_struct_tag_framebuffer* fb);
 
 struct frame_t {
     struct frame_t* rbp;
