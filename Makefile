@@ -91,7 +91,7 @@ DEPS_DIR		= ${BUILD_DIR}/deps
 
 LIMINE_DIR		= ${DEPS_DIR}/limine
 LIMINE_REPO 	= https://github.com/limine-bootloader/limine
-LIMINE_BRANCH	= v0.6
+LIMINE_BRANCH	= v1.0
 
 BDDISASM_DIR	= ${DEPS_DIR}/bddisasm
 BDDISASM_REPO	= https://github.com/bitdefender/bddisasm
