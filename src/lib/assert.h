@@ -8,7 +8,7 @@
 
 #define ASSERT(expr) \
     if (!(expr)) { \
-        ERR("Assertation \"%s\" failed\n", #expr) \
+        ERR("Assertion \"%s\" failed\n", #expr) \
         ERR("\t%s:%d\n", __FILE__, __LINE__); \
         for (;;) ; \ 
     } \
