@@ -1,5 +1,5 @@
-#ifndef __DRIVERS__PCI_H__
-#define __DRIVERS__PCI_H__
+#ifndef __OSPM__PCI_H__
+#define __OSPM__PCI_H__
 
 #include <stdint.h>
 #include <stddef.h>
@@ -80,7 +80,9 @@ uint32_t pci_read_device_dword(struct pci_device_t* device, uint32_t offset);
 void pci_write_device_dword(struct pci_device_t* device, uint32_t offset, uint32_t value);
 
 int pci_read_bar(struct pci_device_t* device, int bar, struct pci_bar_t* out);
-struct pci_device_t* pci_get_device_by_vendor(uint16_t vendor, uint16_t id, size_t index);
+
+int pci_get_device(struct pci_device_t* ret, uint8_t class, uint8_t subclass, uint8_t prog_if);
+int pci_get_device_by_vendor(struct pci_device_t* ret, uint16_t vendor, uint16_t id, size_t index);
 
 void pci_enable_busmastering(struct pci_device_t* device);
 

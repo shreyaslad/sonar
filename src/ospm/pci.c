@@ -1,12 +1,12 @@
-#include <drivers/pci.h>
+#include <ospm/pci.h>
 
 #define MAX_FUNCTION    8
 #define MAX_DEVICE      32
 #define MAX_BUS         256
 
-struct pci_device_t* pci_devices;
+struct pci_device_t* pci_drivers;
 
-size_t available_devices = 0;
+size_t available_drivers = 0;
 
 #define BYTE    0
 #define WORD    1
@@ -104,12 +104,26 @@ void pci_enable_busmastering(struct pci_device_t* device) {
     }
 }
 
-struct pci_device_t* pci_get_device_by_vendor(uint16_t vendor, uint16_t id, size_t index) {
-    for (size_t i = 0; i < stbds_arrlen(pci_devices); i++) {
-        struct pci_device_t* dev = &pci_devices[i];
+int pci_get_device(struct pci_device_t* ret, uint8_t class, uint8_t subclass, uint8_t prog_if) {
+    for (size_t i = 0; i < stbds_arrlen(pci_drivers); i++) {
+        struct pci_device_t dev = pci_drivers[i];
+
+        if (dev.device_class == class && dev.subclass == subclass && dev.prog_if == prog_if) {
+            memcpy(ret, &dev, sizeof(struct pci_device_t));
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+int pci_get_device_by_vendor(struct pci_device_t* ret, uint16_t vendor, uint16_t id, size_t index) {
+    for (size_t i = 0; i < stbds_arrlen(pci_drivers); i++) {
+        struct pci_device_t dev = pci_drivers[i];
         
-        if (dev->vendor_id == vendor && dev->device_id == id) {
-            return dev;
+        if (dev.vendor_id == vendor && dev.device_id == id) {
+            memcpy(ret, &dev, sizeof(struct pci_device_t));
+            return 1;
         }
     }
 
@@ -147,19 +161,18 @@ static void pci_check_function(uint8_t bus, uint8_t slot, uint8_t func, int64_t 
         device.multifunction = 0;
     }
 
-    available_devices++;
-    stbds_arrput(pci_devices, device);
+    available_drivers++;
+    stbds_arrput(pci_drivers, device);
     TRACE("-\t%d:%d.%d: %s\n", bus, slot, func,
             get_dev_type(device.device_class, device.subclass, device.prog_if));
 
-    size_t id = available_devices;
-
+    size_t id = available_drivers;
 
     if (device.device_class == 0x06 && device.subclass == 0x04) {
         // pci to pci bridge
-        struct pci_device_t device = pci_devices[id];
+        struct pci_device_t device = pci_drivers[id];
 
-        // find devices attached to this bridge
+        // find drivers attached to this bridge
         uint32_t config_18 = pci_read_device_dword(&device, 0x18);
         pci_check_bus((config_18 >> 8) & 0xFF, id);
     }

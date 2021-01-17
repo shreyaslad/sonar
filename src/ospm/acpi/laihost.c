@@ -5,7 +5,7 @@
 #include <trace.h>
 #include <ospm/acpi/acpi.h>
 #include <ospm/acpi/lai/host.h>
-#include <drivers/pci.h>
+#include <ospm/pci.h>
 
 void laihost_panic(const char* str) {
     panic(str);

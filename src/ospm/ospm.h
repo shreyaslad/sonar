@@ -7,7 +7,7 @@
 #include <ospm/apic.h>
 #include <ospm/smp.h>
 #include <ospm/acpi/lai/core.h>
-#include <drivers/pci.h>
+#include <ospm/pci.h>
 
 #define __MODULE__ "ospm"
 
