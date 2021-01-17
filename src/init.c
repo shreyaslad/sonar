@@ -1,6 +1,10 @@
+#include <io.h>
 #include <mem.h>
+#include <trace.h>
 #include <protos/stivale2.h>
 #include <sys/interrupts.h>
+#include <drivers/display/serial.h>
+#include <drivers/display/vesa.h>
 #include <virt/intel/vmx/vmx.h>
 #include <ospm/ospm.h>
 
@@ -46,12 +50,14 @@ void sonar_main(struct stivale2_struct* info) {
     init_vmx();
 
     printf("\n");
-    TRACE("Sonar booted\n");
+    TRACE("Welcome to Sonar\n");
     TRACE("-\tBuilt on %s at %s\n", __DATE__, __TIME__);
     TRACE("-\tBooted with %s (ver %s, %s)\n",
             info->bootloader_brand,
             info->bootloader_version,
             firmware->flags & 1 ? "BIOS" : "UEFI");
+
+    // attempt to virtualize kernel here
 
     asm volatile("cli\n\t"
                  "hlt\n\t");
