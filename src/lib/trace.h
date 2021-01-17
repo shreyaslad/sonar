@@ -20,9 +20,6 @@
 #define TRACE(fmt, ...) PRN("[*]", fmt, ## __VA_ARGS__)
 #define WARN(fmt, ...)  PRN("[-]", fmt, ## __VA_ARGS__)
 #define ERR(fmt, ...)   PRN("[!]", fmt, ## __VA_ARGS__)
-
-void enable_early_log(struct stivale2_struct_tag_framebuffer* fb);
-
 struct frame_t {
     struct frame_t* rbp;
     size_t rip;

@@ -37,16 +37,22 @@ void sonar_main(struct stivale2_struct* info) {
     
     init_isrs();
 
-    enable_early_log(fb);
-    TRACE("Booted on \"%s\" by \"%s\" (version \"%s\")\n",
-            firmware->flags & 1 ? "BIOS" : "UEFI", 
-            info->bootloader_brand,
-            info->bootloader_version);
+    init_serial();
+    init_vesa(fb);
 
     init_mem(memmap);
+
     init_ospm(rsdp, smp);
     init_vmx();
-    
+
+    printf("\n");
+    TRACE("Sonar booted\n");
+    TRACE("-\tBuilt on %s at %s\n", __DATE__, __TIME__);
+    TRACE("-\tBooted with %s (ver %s, %s)\n",
+            info->bootloader_brand,
+            info->bootloader_version,
+            firmware->flags & 1 ? "BIOS" : "UEFI");
+
     asm volatile("cli\n\t"
                  "hlt\n\t");
 }
