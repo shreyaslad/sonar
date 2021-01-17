@@ -149,10 +149,10 @@ QFLAGS	=	\
 		-boot		menu=off	\
 		-hda		${SONAR_IMG_TARGET}	\
 		-smp		cpus=4	\
-		-numa		node,cpus=0,nodeid=0	\
-		-numa		node,cpus=1,nodeid=1	\
-		-numa		node,cpus=2,nodeid=2	\
-		-numa		node,cpus=3,nodeid=3	\
+		#-numa		node,cpus=0,nodeid=0	\
+		#-numa		node,cpus=1,nodeid=1	\
+		#-numa		node,cpus=2,nodeid=2	\
+		#-numa		node,cpus=3,nodeid=3	\
 		-device		intel-iommu,aw-bits=48	\
 		#-device		qemu-xhci	\
 		#-device		id=foo,file=${SONAR_IMG_TARGET},format=raw,if=none	\

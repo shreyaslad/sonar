@@ -10,7 +10,7 @@ if [ -z "$OBJDUMP" ]; then
     OBJDUMP=objdump
 fi
 
-${OBJDUMP} -t build/ksonar.elf | sed '/\bd\b/d' | sort > "$TMP1"
+${OBJDUMP} -t ../build/kernels/sonar/ksonar.elf | sed '/\bd\b/d' | sort > "$TMP1"
 grep "\.text" < "$TMP1" | cut -d' ' -f1 > "$TMP2"
 grep "\.text" < "$TMP1" | awk 'NF{ print $NF }' > "$TMP3"
 

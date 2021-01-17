@@ -14,6 +14,7 @@ isr%1:
 [global isr%1]
 isr%1:
     cli
+    push 0 ; don't ask, it just works™️
     push %1
     jmp isr_common
 %endmacro
