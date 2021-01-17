@@ -9,6 +9,6 @@
 #undef __MODULE__
 #define __MODULE__ "smp"
 
-void init_smp(struct stivale2_struct_tag_smp* smp_info);
+void init_smp(struct stivale2_struct_tag_smp* smp);
 
 #endif
