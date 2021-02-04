@@ -40,6 +40,13 @@ build
         └── objects
 ```
 
+### Scripts
+
+```
+src
+├── gensyms.sh  : generates the kernel's symbol table for debugging
+```
+
 ## Building
 
 Building sonar is fairly simple. It only depends on a couple tools, most of which are provided by default in a Linux environment. They are as follows:
@@ -57,7 +64,7 @@ There are two possible methods for building:
 
 #### 1. Creating the Full Image
 
-This approach lets one create a full hard drive image, complete with sonar, the limine bootloader, and a test kernel. One can simply copy this image to a drives (flash drive, hard drive, etc) and then boot off this medium. 
+This approach lets one create a full hard drive image, complete with sonar, the limine bootloader, and a test kernel. One can simply copy this image to a drive (flash drive, hard drive, etc) and then boot off this medium. 
 
 Once the image (`sonar.img`) has been created, one can mount it then add/remove files and tweak the limine configuration to suit specific needs. The `sonar.img` file is generated like so: 
 
