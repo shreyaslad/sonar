@@ -4,9 +4,6 @@ default: all
 		limine			\
 		bddisasm		\
 		lai				\
-		clean-limine	\
-		clean-bddisasm	\
-		clean-lai		\
 		clean			\
 
 LAI_C_SOURCES	= ${wildcard ${LAI_DIR}/*.c}

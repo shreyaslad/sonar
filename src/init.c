@@ -1,6 +1,6 @@
 #include <io.h>
 #include <mem.h>
-#include <trace.h>
+#include <log.h>
 #include <protos/stivale2.h>
 #include <sys/interrupts.h>
 #include <drivers/display/serial.h>
@@ -8,33 +8,34 @@
 #include <virt/intel/vmx/vmx.h>
 #include <ospm/ospm.h>
 
+#undef __MODULE__
 #define __MODULE__ "init"
 
 __attribute__((noreturn))
 void sonar_main(struct stivale2_struct* info) {
-    struct stivale2_struct_tag_memmap*      memmap;
-    struct stivale2_struct_tag_framebuffer* fb;
-    struct stivale2_struct_tag_rsdp*        rsdp;
-    struct stivale2_struct_tag_smp*         smp;
-    struct stivale2_struct_tag_firmware*    firmware;
+    struct stivale2_struct_tag_memmap*      memmap_tag;
+    struct stivale2_struct_tag_framebuffer* fb_tag;
+    struct stivale2_struct_tag_rsdp*        rsdp_tag;
+    struct stivale2_struct_tag_smp*         smp_tag;
+    struct stivale2_struct_tag_firmware*    firmware_tag;
 
-    for (struct stivale2_tag* cur = (struct stivale2_tag *)info->tags; cur;
+    for (struct stivale2_tag* cur = (struct stivale2_tag *)(info->tags); cur;
             cur = (struct stivale2_tag *)(cur->next)) {
         switch (cur->identifier) {
             case STIVALE2_STRUCT_TAG_MEMMAP_ID:
-                memmap = (struct stivale2_struct_tag_memmap *)cur;
+                memmap_tag = (struct stivale2_struct_tag_memmap *)cur;
                 break;
             case STIVALE2_STRUCT_TAG_FRAMEBUFFER_ID:
-                fb = (struct stivale2_struct_tag_framebuffer *)cur;
+                fb_tag = (struct stivale2_struct_tag_framebuffer *)cur;
                 break;
             case STIVALE2_STRUCT_TAG_RSDP_ID:
-                rsdp = (struct stivale2_struct_tag_rsdp *)cur;
+                rsdp_tag = (struct stivale2_struct_tag_rsdp *)cur;
                 break;
             case STIVALE2_STRUCT_TAG_SMP_ID:
-                smp = (struct stivale2_struct_tag_smp *)cur;
+                smp_tag = (struct stivale2_struct_tag_smp *)cur;
                 break;
             case STIVALE2_STRUCT_TAG_FIRMWARE_ID:
-                firmware = (struct stivale2_struct_tag_firmware *)cur;
+                firmware_tag = (struct stivale2_struct_tag_firmware *)cur;
                 break;
         }
     }
@@ -42,20 +43,20 @@ void sonar_main(struct stivale2_struct* info) {
     init_isrs();
 
     init_serial();
-    init_vesa(fb);
+    init_vesa(fb_tag);
 
-    init_mem(memmap);
+    init_mem(memmap_tag);
 
-    init_ospm(rsdp, smp);
+    init_ospm(rsdp_tag, smp_tag);
     init_vmx();
 
     printf("\n");
-    TRACE("Welcome to Sonar\n");
+    TRACE("Sonar\n");
     TRACE("-\tBuilt on %s at %s\n", __DATE__, __TIME__);
-    TRACE("-\tBooted with %s (ver %s, %s)\n",
+    TRACE("-\tBooted with %s %s (%s)\n",
             info->bootloader_brand,
             info->bootloader_version,
-            firmware->flags & 1 ? "BIOS" : "UEFI");
+            firmware_tag->flags & 1 ? "BIOS" : "UEFI");
 
     // attempt to virtualize kernel here
 

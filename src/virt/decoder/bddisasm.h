@@ -1,10 +1,15 @@
 /*
  * Copyright (c) 2020 Bitdefender
  * SPDX-License-Identifier: Apache-2.0
+ * 
+ * Copyright (c) 2021 Shreyas Lad <slad0716@gmail.com>
+ * 
  */
+
 #ifndef BDDISASM_H
 #define BDDISASM_H
 
+#include <stdbool.h>
 #include "disasmstatus.h"
 #include "registers.h"
 #include "constants.h"

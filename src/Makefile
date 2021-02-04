@@ -6,7 +6,6 @@ default: all
 C_SOURCES	= $(shell find . -type f -name '*.c')
 H_SOURCES	= $(shell find . -type f -name '*.h')
 ASM_SOURCES	= $(shell find . -type f -name '*.asm')
-LIBS		= $(shell find . -type f -name '*.a')
 
 OBJ			= ${C_SOURCES:.c=.o} ${ASM_SOURCES:.asm=.o}
 
