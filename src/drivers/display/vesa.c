@@ -117,6 +117,6 @@ void init_vesa(struct stivale2_struct_tag_framebuffer* fb) {
     size_t fb_size = fb->framebuffer_height * fb->framebuffer_pitch;
 
     for (int i = fb->framebuffer_addr; i < fb->framebuffer_addr + fb_size; i += PAGESIZE) {
-        vmm_map(i + HIGH_VMA, i, get_pml4(), TABLEPRESENT | TABLEWRITE);
+        vmm_map(i + HIGH_VMA, i, get_pml4(), MAP_TABLEPRESENT | MAP_TABLEWRITE);
     }
 }

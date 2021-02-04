@@ -47,7 +47,7 @@ void vmm_map(size_t* vaddr, size_t* paddr, size_t* pml4ptr, size_t flags) {
     size_t  pml1phys = NULL;
     size_t* pml1virt = NULL;
 
-    if (pml4ptr[indicies.pml4idx] & TABLEPRESENT) {
+    if (pml4ptr[indicies.pml4idx] & MAP_TABLEPRESENT) {
         pml3phys = (size_t)(pml4ptr[indicies.pml4idx] & RMFLAGS);
         pml3virt = (size_t)(pml3phys + HIGH_VMA);
     } else {
@@ -57,7 +57,7 @@ void vmm_map(size_t* vaddr, size_t* paddr, size_t* pml4ptr, size_t flags) {
         pml4ptr[indicies.pml4idx] = (size_t)pml3phys | flags;
     }
 
-    if (pml3virt[indicies.pml3idx] & TABLEPRESENT) {
+    if (pml3virt[indicies.pml3idx] & MAP_TABLEPRESENT) {
         pml2phys = (size_t)(pml3virt[indicies.pml3idx] & RMFLAGS);
         pml2virt = (size_t)(pml2phys + HIGH_VMA);
     } else {
@@ -67,7 +67,7 @@ void vmm_map(size_t* vaddr, size_t* paddr, size_t* pml4ptr, size_t flags) {
         pml3virt[indicies.pml3idx] = (size_t)pml2phys | flags;
     }
 
-    if (pml2virt[indicies.pml2idx] & TABLEPRESENT) {
+    if (pml2virt[indicies.pml2idx] & MAP_TABLEPRESENT) {
         pml1phys = (size_t)(pml2virt[indicies.pml2idx] & RMFLAGS);
         pml1virt = (size_t)(pml1phys + HIGH_VMA);
     } else {

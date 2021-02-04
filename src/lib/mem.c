@@ -62,9 +62,9 @@ void init_mem(struct stivale2_struct_tag_memmap* memmap) {
     }
 
     for (uint64_t i = 0; i < totalmem / PAGESIZE; i += PAGESIZE) {
-        vmm_map((uint64_t *)(i + HIGH_VMA), (uint64_t *)i, get_pml4(), TABLEPRESENT | TABLEWRITE);
-        vmm_map((uint64_t *)(i + KERNEL_HIGH_VMA), (uint64_t *)i, get_pml4(), TABLEPRESENT | TABLEWRITE);
-        vmm_map((uint64_t *)i, (uint64_t *)i, get_pml4(), TABLEPRESENT | TABLEWRITE);
+        vmm_map((uint64_t *)(i + HIGH_VMA), (uint64_t *)i, get_pml4(), MAP_TABLEPRESENT | MAP_TABLEWRITE);
+        vmm_map((uint64_t *)(i + KERNEL_HIGH_VMA), (uint64_t *)i, get_pml4(), MAP_TABLEPRESENT | MAP_TABLEWRITE);
+        vmm_map((uint64_t *)i, (uint64_t *)i, get_pml4(), MAP_TABLEPRESENT | MAP_TABLEWRITE);
     }
 
     memset(pmm_bitmap, 0, totalmem / PAGESIZE / 8);
