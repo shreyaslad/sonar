@@ -2,7 +2,7 @@
 #define __INTEL__IOMMU_H__
 
 #include <stdint.h>
-#include <trace.h>
+#include <log.h>
 #include <ospm/acpi/acpi.h>
 
 struct dmar_t {
