@@ -10,8 +10,8 @@ Sonar is a 64 bit Type-1 hypervisor aimed to implement kernel hotswapping. It sh
 
 ```
 src
-├── boot        : loading the kernel 
-├── drivers     : drivers
+├── boot        : code that loads the kernel 
+├── drivers     : kernel drivers
 ├── fs          : filesystems
 ├── lib         : kernel library routines
 ├── mm          : kernel memory management
