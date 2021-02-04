@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <alloc.h>
 #include <panic.h>
+#include <log.h>
 #include <trace.h>
 #include <sys/regs.h>
 #include <ospm/apic.h>

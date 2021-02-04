@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <alloc.h>
-#include <trace.h>
+#include <log.h>
 #include <ospm/acpi/acpi.h>
 
 #define __MODULE__ "numa"

@@ -4,7 +4,7 @@
 #undef __MODULE__
 #define __MODULE__ "assert"
 
-#include <trace.h>
+#include <log.h>
 
 #define ASSERT(expr) \
     if (!(expr)) { \

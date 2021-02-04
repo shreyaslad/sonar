@@ -2,7 +2,7 @@
 #define __LIB__ALLOC_H__
 
 #include <stddef.h>
-#include <trace.h>
+#include <log.h>
 #include <mem.h>
 #include <mm/pmm.h>
 

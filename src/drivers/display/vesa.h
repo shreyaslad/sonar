@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <alloc.h>
-#include <trace.h>
+#include <log.h>
 #include <protos/stivale2.h>
 #include <mem.h>
 #include <mm/vmm.h>

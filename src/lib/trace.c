@@ -20,14 +20,16 @@ void stacktrace(size_t* rbp) {
         size_t ret_addr = rbp[1];
         size_t off;
 
-        if (!ret_addr)
+        if (!ret_addr) {
             break;
+        }
 
         char* name = trace_addr(&off, ret_addr);
         ERR("\t[%#16lx] <%s+%#lx>\n", ret_addr, name, off);
 
-        if (!old_bp)
+        if (!old_bp) {
             break;
+        }
 
         rbp = (void *)old_bp;
     }

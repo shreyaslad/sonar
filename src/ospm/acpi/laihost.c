@@ -2,7 +2,7 @@
 #include <stddef.h>
 #include <alloc.h>
 #include <str.h>
-#include <trace.h>
+#include <log.h>
 #include <ospm/acpi/acpi.h>
 #include <ospm/acpi/lai/host.h>
 #include <ospm/pci.h>

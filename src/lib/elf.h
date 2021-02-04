@@ -7,7 +7,7 @@
 #include <mem.h>
 #include <panic.h>
 #include <str.h>
-#include <trace.h>
+#include <log.h>
 #include <protos/stivale2.h>
 
 #define __MODULE__ "elf"

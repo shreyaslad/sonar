@@ -5,7 +5,7 @@
 #include <stddef.h>
 #include <alloc.h>
 #include <mem.h>
-#include <trace.h>
+#include <log.h>
 #include <stb_ds.h>
 #include <sys/ports.h>
 

@@ -2,7 +2,7 @@
 #define __SYS__INT__APIC_H__
 
 #include <stdint.h>
-#include <trace.h>
+#include <log.h>
 #include <ospm/acpi/acpi.h>
 #include <sys/ports.h>
 #include <sys/msrs.h>
