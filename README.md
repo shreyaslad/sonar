@@ -1,22 +1,35 @@
 # sonar
 
-Sonar is a 64 bit Type-1 hypervisor aimed to implement kernel hotswapping.
- 
-## Building
+Sonar is a 64 bit Type-1 hypervisor aimed to implement kernel hotswapping. It should allow kernels to be easily tested by swapping them out and passing the saved state of the previous kernel to the current one. 
 
-Building sonar is fairly simple. It only depends on a couple tools, most of which are provided by default in a Linux environment. They are as follows:
-- git
-- make
-- mkfs
-- clang
-- nasm
+![](docs/sonar.png)
+
+## Project Map
+
+### Source Directory Structure
+
+```
+src
+├── boot        : loading the kernel 
+├── drivers     : drivers
+├── fs          : filesystems
+├── lib         : kernel library routines
+├── mm          : kernel memory management
+├── net         : networking
+├── ospm        : OS power management
+├── protos      : boot protocols
+├── sec         : OS security
+├── sys         : architecture specific code
+├── thirdparty  : libraries that need to be compiled with the kernel
+└── virt        : virtualization code
+```
 
 ### Build Directory Structure
 
 The tree below outlines an example structure of the build directory, which contains the binaries for sonar and its dependencies. 
 
 ```
-.
+build
 ├── deps
 │   ├── bddisasm
 │   └── limine
@@ -27,7 +40,14 @@ The tree below outlines an example structure of the build directory, which conta
         └── objects
 ```
 
-Each node in the tree is a directory. For the `sonar` and `test` subprojects, the root folder contains the final executables and/or images while the `objects` folder contains the compiled object files.
+## Building
+
+Building sonar is fairly simple. It only depends on a couple tools, most of which are provided by default in a Linux environment. They are as follows:
+- git
+- make
+- mkfs
+- clang
+- nasm
 
 ### Building and Running
 
@@ -95,7 +115,7 @@ make clean-lai
 
 ## License
 
-Copyright (c) 2020 Shreyas Lad
+Copyright (c) 2021 Shreyas Lad
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
