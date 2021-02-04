@@ -1,7 +1,7 @@
 #include <ospm/smp.h>
 
 void init_smp(struct stivale2_struct_tag_smp* smp) {
-    TRACE("Found %d CPUs, using the %s:\n",
+    TRACE("Found %d CPU(s), using the %s:\n",
             smp->cpu_count,
             smp->flags & 1 ? "x2APIC" : "xAPIC");
 
