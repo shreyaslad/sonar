@@ -37,7 +37,7 @@ void init_smp(struct stivale2_struct_tag_smp* smp) {
         int is_bsp = (cpu.lapic_id == smp->bsp_lapic_id);
 
         if (!is_bsp) {
-            uint64_t* stack_base = (uint64_t *)((uint64_t)kmalloc(STACK_SIZE) + HIGH_VMA);
+            uint64_t* stack_base = kmalloc(STACK_SIZE);
             uint64_t* stack_top = (uint64_t *)((uint64_t)stack_base + STACK_SIZE);
 
             spinlock_lock(&smp_lock);

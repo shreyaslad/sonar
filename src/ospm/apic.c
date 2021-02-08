@@ -170,10 +170,10 @@ void init_madt() {
     if ((madt = find_sdt("APIC", 0))) {
         TRACE("APIC configuration:\n");
 
-        lapics = kmalloc(ACPI_MAX_TBL_CNT) + HIGH_VMA;
-        ioapics = kmalloc(ACPI_MAX_TBL_CNT) + HIGH_VMA;
-        isos = kmalloc(ACPI_MAX_TBL_CNT) + HIGH_VMA;
-        nmis = kmalloc(ACPI_MAX_TBL_CNT) + HIGH_VMA;
+        lapics = kmalloc(ACPI_MAX_TBL_CNT);
+        ioapics = kmalloc(ACPI_MAX_TBL_CNT);
+        isos = kmalloc(ACPI_MAX_TBL_CNT);
+        nmis = kmalloc(ACPI_MAX_TBL_CNT);
 
         for (uint8_t* madt_ptr = (uint8_t *)(&madt->madt_entries_begin);
             (size_t)madt_ptr < (size_t)madt + madt->sdt.len;

@@ -38,11 +38,11 @@ alloc:
     for (uint64_t i = first_bit; i < first_bit + pages; i++) {
         set_abs_bit(pmm_bitmap, i);
     }
-    return (void*)(first_bit * PAGESIZE);
+    return (void*)((first_bit * PAGESIZE) + HIGH_VMA);
 }
 
 void pmm_free(void* ptr, size_t pages) {
-    uint64_t first_bit = (uint64_t)ptr / PAGESIZE;
+    uint64_t first_bit = (uint64_t)(ptr - HIGH_VMA) / PAGESIZE;
     uint64_t total_bits_in_bitmap = totalmem / PAGESIZE;
 
     for (uint64_t i = 0; i < total_bits_in_bitmap; i++) {

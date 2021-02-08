@@ -20,7 +20,7 @@ struct cpu_t* get_cpu() {
 }
 
 void init_cpu() {
-    struct cpu_t* cpu = kmalloc(sizeof(struct cpu_t)) + HIGH_VMA;
+    struct cpu_t* cpu = kmalloc(sizeof(struct cpu_t));
 
     cpu->self = cpu;
     wrmsr(MSR_GS_BASE, (uint64_t)cpu);
