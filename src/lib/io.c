@@ -127,6 +127,8 @@ typedef struct {
   void* arg;
 } out_fct_wrap_type;
 
+spinlock_t io_lock;
+
 void _putchar(char c) {
     put(c);
     serial_write(c);
@@ -859,15 +861,21 @@ static int _vsnprintf(out_fct_type out, char* buffer, const size_t maxlen, const
   return (int)idx;
 }
 
+spinlock_t io_lock;
 
 ///////////////////////////////////////////////////////////////////////////////
 
 int printf_(const char* format, ...) {
+    //spinlock_lock(&io_lock);
+
     va_list va;
     va_start(va, format);
     char buffer[1];
     const int ret = _vsnprintf(_out_char, buffer, (size_t)-1, format, va);
     va_end(va);
+
+    //spinlock_release(&io_lock);
+
     return ret;
 }
 

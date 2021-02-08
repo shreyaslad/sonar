@@ -2,11 +2,13 @@
 #include <mem.h>
 #include <log.h>
 #include <protos/stivale2.h>
-#include <sys/interrupts.h>
 #include <drivers/display/serial.h>
 #include <drivers/display/vesa.h>
 #include <virt/intel/vmx/vmx.h>
 #include <ospm/ospm.h>
+#include <sys/cpu.h>
+#include <sys/gdt.h>
+#include <sys/idt.h>
 
 #undef __MODULE__
 #define __MODULE__ "init"
@@ -40,13 +42,15 @@ void sonar_main(struct stivale2_struct* info) {
         }
     }
     
-    init_isrs();
+    init_gdt();
+    init_idt();
 
     init_serial();
     init_vesa(fb_tag);
 
     init_mem(memmap_tag);
 
+    init_cpu();
     init_ospm(rsdp_tag, smp_tag);
     init_vmx();
 

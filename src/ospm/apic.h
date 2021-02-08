@@ -3,9 +3,11 @@
 
 #include <stdint.h>
 #include <log.h>
+#include <panic.h>
 #include <ospm/acpi/acpi.h>
 #include <sys/ports.h>
 #include <sys/msrs.h>
+#include <sys/cpu.h>
 
 #define __MODULE__ "apic"
 
@@ -61,18 +63,58 @@
 #define LAPIC_REG_TIMER_CURCNT          0x390
 #define LAPIC_REG_TIMER_DIVCONF         0x3E0
 
-extern struct acpi_madt* madt;
+struct acpi_madt {
+    struct sdt_t sdt;
+    uint32_t l_paddr;
+    uint32_t flags;
+    uint8_t madt_entries_begin;
+} __attribute__((packed));
 
-extern struct madt_lapic** lapics;
+struct madt_hdr {
+    uint8_t type;
+    uint8_t len;
+} __attribute__((packed));
+
+struct lapic_t {
+    struct madt_hdr hdr;
+    uint8_t acpi_processor_uid;
+    uint8_t apic_id;
+    uint32_t flags; // bit 0: Processor Enabled | bit 1: Online Capable
+} __attribute__((packed));
+
+struct ioapic_t {
+    struct madt_hdr hdr;
+    uint8_t ioapic_id;
+    uint8_t reserved;
+    uint32_t ioapic_addr;
+    uint32_t gsi_base;
+} __attribute__((packed));
+
+struct iso_t {
+    struct madt_hdr hdr;
+    uint8_t bus_src;
+    uint8_t irq_src;
+    uint32_t gsi;
+    uint16_t flags;
+} __attribute__((packed));
+
+struct nmi_t {
+    struct madt_hdr hdr;
+    uint8_t acpi_proc_id;
+    uint16_t flags;
+    uint8_t lint;
+} __attribute__((packed));
+
+extern struct lapic_t** lapics;
 extern int lapic_cnt;
 
-extern struct madt_ioapic** ioapics;
+extern struct ioapic_t** ioapics;
 extern int ioapic_cnt;
 
-extern struct madt_iso** isos;
+extern struct iso_t** isos;
 extern int iso_cnt;
 
-extern struct madt_nmi** nmis;
+extern struct nmi_t** nmis;
 extern int nmi_cnt;
 
 uint32_t lapic_read(uint16_t offset);
@@ -83,9 +125,7 @@ void ioapic_write(uint64_t ioapic_base, uint32_t reg, uint32_t val);
 
 uint32_t redirect_gsi(uint32_t gsi, uint64_t ap, uint8_t irq, uint64_t flags);
 
-void init_lapic_timer();
 void init_apic();
-
 void init_madt();
 
 #endif

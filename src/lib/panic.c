@@ -1,7 +1,5 @@
 #include <panic.h>
 
-#define __MODULE__ "panic"
-
 __attribute__((noreturn))
 void panic(const char* reason, ...) {
     va_list va;

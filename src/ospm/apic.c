@@ -1,59 +1,17 @@
 #include <ospm/apic.h>
 
-struct acpi_madt {
-    struct sdt_t sdt;
-    uint32_t l_paddr;
-    uint32_t flags;
-    uint8_t madt_entries_begin;
-} __attribute__((packed));
-
-struct madt_hdr {
-    uint8_t type;
-    uint8_t len;
-} __attribute__((packed));
-
-struct madt_lapic {
-    struct madt_hdr hdr;
-    uint8_t acpi_proc_id;
-    uint8_t apic_id;
-    uint32_t flags; // bit 0: Processor Enabled | bit 1: Online Capable
-} __attribute__((packed));
-
-struct madt_ioapic {
-    struct madt_hdr hdr;
-    uint8_t ioapic_id;
-    uint8_t reserved;
-    uint32_t ioapic_addr;
-    uint32_t gsi_base;
-} __attribute__((packed));
-
-struct madt_iso {
-    struct madt_hdr hdr;
-    uint8_t bus_src;
-    uint8_t irq_src;
-    uint32_t gsi;
-    uint16_t flags;
-} __attribute__((packed));
-
-struct madt_nmi {
-    struct madt_hdr hdr;
-    uint8_t acpi_proc_id;
-    uint16_t flags;
-    uint8_t lint;
-} __attribute__((packed));
-
 struct acpi_madt* madt;
 
-struct madt_lapic** lapics;
+struct lapic_t** lapics;
 int lapic_cnt;
 
-struct madt_ioapic** ioapics;
+struct ioapic_t** ioapics;
 int ioapic_cnt;
 
-struct madt_iso** isos;
+struct iso_t** isos;
 int iso_cnt;
 
-struct madt_nmi** nmis;
+struct nmi_t** nmis;
 int nmi_cnt;
 
 #define APIC_ACTIVE_HIGH        (1 << 1)
@@ -102,11 +60,11 @@ static uint32_t get_max_gsi(uint64_t ioapic_base) {
     return val & ~(1 << 7);
 }
 
-static struct madt_ioapic* get_ioapic(uint32_t gsi) {
-    struct madt_ioapic* valid = NULL;
+static struct ioapic_t* get_ioapic(uint32_t gsi) {
+    struct ioapic_t* valid = NULL;
 
     for (int i = 0; i <= ioapic_cnt; i++) {
-        struct madt_ioapic* cur = ioapics[i];
+        struct ioapic_t* cur = ioapics[i];
         uint32_t max_gsi = get_max_gsi(cur->ioapic_addr) + cur->gsi_base;
 
         if (cur->gsi_base <= gsi && max_gsi >= gsi) {
@@ -118,7 +76,7 @@ static struct madt_ioapic* get_ioapic(uint32_t gsi) {
 }
 
 static uint32_t read_redir_entry(uint32_t gsi) {
-    struct madt_ioapic* valid = get_ioapic(gsi);
+    struct ioapic_t* valid = get_ioapic(gsi);
 
     if (!valid)
         return APIC_REDIR_BAD_READ;
@@ -130,7 +88,7 @@ static uint32_t read_redir_entry(uint32_t gsi) {
 }
 
 static uint32_t set_redir_entry(uint64_t gsi, uint64_t val) {
-    struct madt_ioapic* valid = get_ioapic(gsi);
+    struct ioapic_t* valid = get_ioapic(gsi);
     if (!valid)
         return APIC_REDIR_BAD_READ;
     
@@ -153,17 +111,6 @@ uint32_t redirect_gsi(uint32_t gsi, uint64_t ap, uint8_t irq, uint64_t flags) {
     TRACE("Mapped GSI %u to IRQ %u on LAPIC %U\n", gsi, irq, ap);
 
     return ret;
-}
-
-static void set_lapic_timer_mask(size_t mask) {
-    uint32_t entry = lapic_read(LAPIC_REG_LVT_TIMER);
-    if(mask) {
-        entry |= 1UL << 16;
-    } else {
-        entry &= ~(1UL << 16);
-    }
-
-    lapic_write(LAPIC_REG_LVT_TIMER, entry);
 }
 
 void init_apic() {
@@ -191,13 +138,29 @@ void init_apic() {
 
     asm volatile("mov %0, %%cr8" :: "r"(0ULL));
 
+    lapic_write(LAPIC_REG_TPR, 0);
     lapic_write(LAPIC_REG_SPUR_INTR, lapic_read(LAPIC_REG_SPUR_INTR) | 0x100);
 
     if (!(rdmsr(IA32_APIC_BASE) & (1 << 11))) {
-        ERR("Not properly initialized!\n");
-        asm volatile(
-            "cli\n\t"
-            "hlt\n");
+        panic("Not properly initialized!\n");
+    }
+
+    struct cpu_t* cpu = get_cpu();
+    cpu->lapic_id = (lapic_read(LAPIC_REG_ID) >> 24) & 0xff;
+    cpu->lapic = lapics[cpu->lapic_id];
+
+    uint32_t edx;
+
+    if (!cpuid_count(1, 0, NULL, NULL, NULL, &edx)) {
+        panic("Failed to retrieve BSP LAPIC ID!");
+    }
+
+    uint8_t bsp_lapic_id = edx >> 24;
+
+    if (bsp_lapic_id == cpu->lapic_id) {
+        cpu->ap_type = CPU_BSP;
+    } else {
+        cpu->ap_type = CPU_AP;
     }
 
     //uint32_t* volatile lapic_base = (uint32_t* volatile)madt->l_paddr;
@@ -222,7 +185,7 @@ void init_madt() {
                         break;
                     case 1:
                         TRACE("-\tIOAPIC #%u\n", ioapic_cnt);
-                        ioapics[ioapic_cnt++] = (struct madt_ioapic *)madt_ptr;
+                        ioapics[ioapic_cnt++] = (struct ioapic_t *)madt_ptr;
                         break;
                     case 2:
                         TRACE("-\tISO #%u\n", iso_cnt);
@@ -236,6 +199,6 @@ void init_madt() {
                         WARN("-\tNothing found\n");
                         break;
                 }
-            }
+        }
     }
 }

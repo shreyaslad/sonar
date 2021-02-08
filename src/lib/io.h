@@ -6,6 +6,7 @@
 #include <stdarg.h>
 #include <str.h>
 #include <alloc.h>
+#include <locks.h>
 #include <lib/mem.h>
 #include <drivers/display/vesa.h>
 #include <protos/stivale2.h>

@@ -1,5 +1,7 @@
 #include <virt/intel/vmx/vmx.h>
 
+extern void enable_vmx();
+
 #define VMCS_EXIT_ENMI      0
 #define VCMS_EXIT_EXTINT    1
 #define VCMS_EXIT_TFAULT    2
@@ -98,18 +100,16 @@ const char* vm_instruction_errors[] = {
     "Invalid operand to INVEPT/INVVPID"
 };
 
-static int vmptrld(uint64_t vmcs) {
-    uint8_t ret;
-    asm volatile (
-        "vmptrld %[pa];"
-        "setna %[ret];"
-        : [ret]"=rm"(ret)
-        : [pa]"m"(vmcs)
-        : "cc", "memory");
+int vmptrld(uint64_t vmcs) {
+    uint8_t ret = 0;
+    asm volatile("vmptrld %[Vmcs]"
+        : "=@cca"(ret)
+        : [Vmcs] "m"(vmcs)
+        : "memory");
     return ret;
 }
 
-static int vmclear(uint64_t vmcs) {
+int vmclear(uint64_t vmcs) {
     uint8_t ret;
     asm volatile (
         "vmclear %[pa];"
@@ -120,7 +120,7 @@ static int vmclear(uint64_t vmcs) {
     return ret;
 }
 
-static int vmwrite(uint64_t encoding, uint64_t value) {
+int vmwrite(uint64_t encoding, uint64_t value) {
     uint8_t ret;
     asm volatile (
         "vmwrite %1, %2;"
@@ -132,7 +132,7 @@ static int vmwrite(uint64_t encoding, uint64_t value) {
     return ret;
 }
 
-static uint64_t vmread(uint64_t encoding) {
+uint64_t vmread(uint64_t encoding) {
     uint64_t tmp;
     uint8_t ret;
     asm volatile(
@@ -145,33 +145,58 @@ static uint64_t vmread(uint64_t encoding) {
     return tmp;
 }
 
-static int init_vmcs() {
-    uint64_t* vmcs = pmm_alloc(1);
-    TRACE("VMCS region: %#lx\n", (uint64_t)vmcs + HIGH_VMA);
-    memset((void *)((uint64_t)vmcs + HIGH_VMA), 0, PAGESIZE);
-    vmptrld((uint64_t)vmcs);
+void init_vmcs() {
+    uint64_t* vmcs = (uint64_t *)((uint64_t)pmm_alloc(1) + HIGH_VMA);
+    TRACE("-\tVMCS region: %#lx\n", (uint64_t)vmcs);
+    
+    memset((void *)vmcs, 0, PAGESIZE);
+    
+    uint32_t vmx_rev = rdmsr(MSR_IA32_VMX_BASIC);
+    *(uint32_t *)vmcs = vmx_rev;
+    uint64_t vmcs_pa = (uint64_t)vmcs - HIGH_VMA;
 
-    // Set execution state
+    uint32_t proc = rdmsr(MSR_IA32_VMX_PROCBASED_CTLS) >> 32;
+    uint32_t proc2 = rdmsr(MSR_IA32_VMX_PROCBASED_CTLS2) >> 32;
 
+    struct cpu_t* cpu = get_cpu();
+    uint32_t ept_information = rdmsr(MSR_IA32_VMX_EPT_VPID_CAP);
+
+    if (!((ept_information >> 14) & 1)) {
+        panic("WB paging is not supported!");
+    }
+
+    if ((ept_information >> 6) & 1) {
+        cpu->vmx.ept_levels = 4;
+    } else {
+        panic("Unknown amount of EPT levels!");
+    }
+
+    cpu->vmx.ept_dirty_accessed = (ept_information >> 21) & 1;
+
+    uint8_t success = vmptrld(vmcs_pa);
+
+    if (!success) {
+        panic("Failed to initialize the VMCS!");
+    }
 }
 
-static int vmxon() {
+void init_vmxon() {
     void* vmxon_region = pmm_alloc(1);
-    TRACE("VMXON region: %#lx\n", (size_t)vmxon_region + HIGH_VMA);
+    TRACE("-\tVMXON region: %#lx\n", (size_t)vmxon_region + HIGH_VMA);
     memset(vmxon_region + HIGH_VMA, 0, PAGESIZE);
 
-    size_t control = rdmsr(MSR_CODE_IA32_FEATURE_CONTROL);
+    size_t control = rdmsr(MSR_IA32_FEATURE_CONTROL);
 
     if ((control & (0x1 | 0x4)) != (0x1 | 0x4)) {
-        wrmsr(MSR_CODE_IA32_FEATURE_CONTROL, control | 0x1 | 0x4);
+        wrmsr(MSR_IA32_FEATURE_CONTROL, control | 0x1 | 0x4);
     }
 
     size_t cr0;
     asm volatile(
         "mov %%cr0, %0\n\t"
         : "=r"(cr0));
-    cr0 &= rdmsr(MSR_CODE_IA32_VMX_CR0_FIXED1);
-    cr0 |= rdmsr(MSR_CODE_IA32_VMX_CR0_FIXED0);
+    cr0 &= rdmsr(MSR_IA32_VMX_CR0_FIXED1);
+    cr0 |= rdmsr(MSR_IA32_VMX_CR0_FIXED0);
     asm volatile(
         "mov %0, %%cr0\n\t"
         :
@@ -181,54 +206,49 @@ static int vmxon() {
     asm volatile("mov %%cr4, %0\n\t"
                 : "=r"(cr4));
     cr4 |= (1 << 13);
-    cr4 &= rdmsr(MSR_CODE_IA32_VMX_CR4_FIXED1);
-    cr4 |= rdmsr(MSR_CODE_IA32_VMX_CR4_FIXED0);
+    cr4 &= rdmsr(MSR_IA32_VMX_CR4_FIXED1);
+    cr4 |= rdmsr(MSR_IA32_VMX_CR4_FIXED0);
     asm volatile(
         "mov %0, %%cr4\n\t"
         :
         : "r"(cr4));
 
-    uint32_t vmx_rev = rdmsr(MSR_CODE_IA32_VMX_BASIC);
+    uint32_t vmx_rev = rdmsr(MSR_IA32_VMX_BASIC);
+    *(uint32_t *)vmxon_region = vmx_rev;
 
-    uint8_t successful;
+    TRACE("-\tVMX rev: %u\n", vmx_rev);
+
+    uint8_t success;
     asm volatile(
         "vmxon %1\n\t"
         "jnc success\n\t"
         "movq $0, %%rax\n"
         "success:\n\t"
         "movq $1, %%rax\n\t"
-        : "=a"(successful)
+        : "=a"(success)
         : "m"(vmxon_region)
         : "memory", "cc");
 
-    if (successful) {
-        TRACE("Entered VMXON operation\n");
-    } else {
-        ERR("VMXON operation failed!\n");
-        return 0;
+    if (!success) {
+        panic("Failed to initialize the VMXON region!");
     }
-
-    return 1;
 }
 
-static int has_vmx() {
+void detect_vmx() {
     uint32_t eax = (1 << 5);
     uint32_t ecx, unused;
     __get_cpuid(1, &eax, &unused, &ecx, &unused);
 
-    return ecx & 1;
+    if (ecx & 1) {
+        TRACE("CPU supports VMX\n");
+    } else {
+        panic("CPU does not support VMX!");
+    }
 }
 
 void init_vmx() {
-    if (!has_vmx()) {
-        panic("CPU does not support VMX!");
-    }
+    detect_vmx();
 
-    TRACE("CPU supports VMX\n");
-
-    if (!vmxon()) {
-        panic("Failed to execute VMXON!");
-    }
-
-    //init_vmcs();
+    init_vmxon();
+    init_vmcs();
 }
