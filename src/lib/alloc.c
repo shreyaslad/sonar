@@ -240,11 +240,7 @@ static struct liballoc_major *allocate_new_page( unsigned int size )
       return maj;
 }
 
-
-
-
-
-void *PREFIX(malloc)(size_t req_size)
+void* __internal_malloc(size_t req_size)
 {
     int startedBet = 0;
     unsigned long long bestSize = 0;
@@ -574,6 +570,10 @@ void *PREFIX(malloc)(size_t req_size)
     liballoc_dump();
     #endif
     return NULL;
+}
+
+void *PREFIX(malloc)(size_t size) {
+    return (void *)((uint64_t)__internal_malloc(size) + HIGH_VMA);
 }
 
 void PREFIX(free)(void *ptr)
