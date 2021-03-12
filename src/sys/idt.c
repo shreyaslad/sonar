@@ -16,6 +16,50 @@ struct idt_entry_t idt[N_ENTRIES];
 
 int_handler_t handlers[N_ENTRIES];
 
+int_handler_t* get_handlers() {
+    return handlers;
+}
+
+void set_entry(int idx, int_handler_t handler) {
+    uint16_t low    = (uint16_t)((size_t)handler >> 0);
+    uint32_t mid    = (uint16_t)((size_t)handler >> 16);
+    uint64_t high   = (uint64_t)((size_t)handler >> 32);
+
+    idt[idx].offset_lo  = low;
+    idt[idx].cs         = 0x8;
+    idt[idx].ist        = 0;
+    idt[idx].type       = 0b10001110;
+    idt[idx].offset_mid = mid;
+    idt[idx].offset_hi  = high;
+}
+
+void register_handler(uint8_t int_no, int_handler_t handler) {
+    handlers[int_no] = handler;
+}
+
+void load_idt(struct idt_ptr_t* ptr) {
+    asm volatile("lidt %0"
+                 :
+                 : "m"(*ptr)
+                 : "memory");
+}
+
+void store_idt(struct idt_ptr_t* ret) {
+    asm volatile("sidt %0"
+                 : "=m"(*ret)
+                 :
+                 : "memory");
+}
+
+void set_idt() {
+    struct idt_ptr_t ptr = {
+        .limit = N_ENTRIES * sizeof(struct idt_entry_t) - 1,
+        .base = (uint64_t)&idt,
+    };
+
+    load_idt(&ptr);
+}
+
 extern void isr0();
 extern void isr1();
 extern void isr2();
@@ -272,50 +316,6 @@ extern void isr252();
 extern void isr253();
 extern void isr254();
 extern void isr255();
-
-int_handler_t* get_handlers() {
-    return handlers;
-}
-
-void set_entry(int idx, int_handler_t handler) {
-    uint16_t low    = (uint16_t)((size_t)handler >> 0);
-    uint32_t mid    = (uint16_t)((size_t)handler >> 16);
-    uint64_t high   = (uint64_t)((size_t)handler >> 32);
-
-    idt[idx].offset_lo  = low;
-    idt[idx].cs         = 0x8;
-    idt[idx].ist        = 0;
-    idt[idx].type       = 0b10001110;
-    idt[idx].offset_mid = mid;
-    idt[idx].offset_hi  = high;
-}
-
-void register_handler(uint8_t int_no, int_handler_t handler) {
-    handlers[int_no] = handler;
-}
-
-void load_idt(struct idt_ptr_t* ptr) {
-    asm volatile("lidt %0"
-                 :
-                 : "m"(*ptr)
-                 : "memory");
-}
-
-void store_idt(struct idt_ptr_t* ret) {
-    asm volatile("sidt %0"
-                 : "=m"(*ret)
-                 :
-                 : "memory");
-}
-
-void set_idt() {
-    struct idt_ptr_t ptr = {
-        .limit = N_ENTRIES * sizeof(struct idt_entry_t) - 1,
-        .base = (uint64_t)&idt,
-    };
-
-    load_idt(&ptr);
-}
 
 void init_idt() {
     set_entry(0, (uint64_t)isr0);
