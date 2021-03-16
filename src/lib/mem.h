@@ -11,6 +11,8 @@
 #undef __MODULE__
 #define __MODULE__ "mem"
 
+#define STACK_SIZE 4096
+
 #define KERNEL_HIGH_VMA 0xffffffff80000000
 #define HIGH_VMA        0xffff800000000000
 

@@ -1,7 +1,5 @@
 #include <ospm/smp.h>
 
-#define STACK_SIZE 4096
-
 spinlock_t smp_lock;
 
 void start_ap() {
@@ -22,11 +20,11 @@ void init_smp(struct stivale2_struct_tag_smp* smp) {
     #undef __MODULE__
     #define __MODULE__ "smp"
 
-    TRACE("Found %d CPU(s), using the %s:\n",
+    LOG("Found %d CPU(s), using the %s:\n",
             smp->cpu_count,
             smp->flags & 1 ? "x2APIC" : "xAPIC");
 
-    TRACE("\t %-4s %-18s %-18s %-s\n",
+    LOG("\t %-4s %-18s %-18s %-s\n",
             "LID",
             "Stack",
             "Address",
@@ -48,10 +46,10 @@ void init_smp(struct stivale2_struct_tag_smp* smp) {
             spinlock_release(&smp_lock);
         }
 
-        TRACE("-\t%-4lu %-#18lx %-#18lx %-4s\n",
+        LOG("-\t%-4lu %-#18lx %-#18lx %-4s\n",
                 cpu.lapic_id,
-                cpu.target_stack,
-                cpu.goto_address,
+                smp->smp_info[i].target_stack,
+                smp->smp_info[i].goto_address,
                 is_bsp ? "BSP" : "AP");
     }
 }
