@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <io.h>
 #include <mem.h>
 #include <log.h>
@@ -6,9 +7,9 @@
 #include <drivers/display/vesa.h>
 #include <virt/intel/vmx/vmx.h>
 #include <ospm/ospm.h>
-#include <sys/cpu.h>
 #include <sys/gdt.h>
 #include <sys/idt.h>
+#include <sys/cpu.h>
 
 #undef __MODULE__
 #define __MODULE__ "init"
@@ -21,8 +22,9 @@ void sonar_main(struct stivale2_struct* info) {
     struct stivale2_struct_tag_smp*         smp_tag;
     struct stivale2_struct_tag_firmware*    firmware_tag;
 
-    for (struct stivale2_tag* cur = (struct stivale2_tag *)(info->tags); cur;
-            cur = (struct stivale2_tag *)(cur->next)) {
+    for (struct stivale2_tag* cur = (struct stivale2_tag *)(info->tags);
+         cur;
+         cur = (struct stivale2_tag *)(cur->next)) {
         switch (cur->identifier) {
             case STIVALE2_STRUCT_TAG_MEMMAP_ID:
                 memmap_tag = (struct stivale2_struct_tag_memmap *)cur;
@@ -55,15 +57,50 @@ void sonar_main(struct stivale2_struct* info) {
     init_vmx();
 
     printf("\n");
-    TRACE("Sonar\n");
-    TRACE("-\tBuilt on %s at %s\n", __DATE__, __TIME__);
-    TRACE("-\tBooted with %s %s (%s)\n",
+    LOG("Sonar\n");
+    LOG("-\tBuilt on %s at %s\n", __DATE__, __TIME__);
+    LOG("-\tBooted with %s %s (%s)\n",
             info->bootloader_brand,
             info->bootloader_version,
             firmware_tag->flags & 1 ? "BIOS" : "UEFI");
 
-    // attempt to virtualize kernel here
-
-    asm volatile("cli\n\t"
-                 "hlt\n\t");
+    asm {
+        cli
+        hlt
+    }
 }
+
+static uint8_t stack[STACK_SIZE];
+
+struct stivale2_header_tag_smp stivale2_smp_hdr_tag = {
+    .tag = {
+        .identifier = STIVALE2_HEADER_TAG_SMP_ID,
+        .next = 0
+    },
+
+    .flags = 0
+};
+
+struct stivale2_tag stivale2_mtrr_tag = {
+    .identifier = STIVALE2_HEADER_TAG_FB_MTRR_ID,
+    .next = (uintptr_t)&stivale2_smp_hdr_tag
+};
+
+struct stivale2_header_tag_framebuffer stivale2_fb_tag = {
+    .tag = {
+        .identifier = STIVALE2_HEADER_TAG_FRAMEBUFFER_ID,
+        .next = (uintptr_t)&stivale2_mtrr_tag
+    },
+
+    .framebuffer_width = 0,
+    .framebuffer_height = 0,
+    .framebuffer_bpp = 0
+};
+
+__attribute__((section(".stivale2hdr"), used))
+struct stivale2_header stivale2_hdr = {
+    .entry_point = 0,
+    .stack = (uintptr_t)stack + STACK_SIZE,
+    .flags = 0,
+    .tags = (uintptr_t)&stivale2_fb_tag
+};

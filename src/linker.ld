@@ -1,4 +1,4 @@
-ENTRY(_start)
+ENTRY(sonar_main)
 
 OUTPUT_FORMAT(elf64-x86-64)
 
