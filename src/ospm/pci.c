@@ -163,7 +163,7 @@ static void pci_check_function(uint8_t bus, uint8_t slot, uint8_t func, int64_t 
 
     available_drivers++;
     stbds_arrput(pci_drivers, device);
-    TRACE("-\t%d:%d.%d: %s\n", bus, slot, func,
+    LOG("-\t%d:%d.%d: %s\n", bus, slot, func,
             get_dev_type(device.device_class, device.subclass, device.prog_if));
 
     size_t id = available_drivers;
@@ -346,6 +346,6 @@ static void pci_init_root_bus() {
 }
 
 void init_pci() {
-    TRACE("Enumerated devices:\n");
+    LOG("Enumerated devices:\n");
     pci_init_root_bus();
 }

@@ -51,7 +51,7 @@ void* memmove(void* dest, const void* src, size_t n) {
 }
 
 void init_mem(struct stivale2_struct_tag_memmap* memmap) {
-    TRACE("Memory map:\n");
+    LOG("Memory map:\n");
 
     struct stivale2_mmap_entry* entry = (struct stivale2_mmap_entry *)memmap->memmap;
 
@@ -70,7 +70,7 @@ void init_mem(struct stivale2_struct_tag_memmap* memmap) {
     memset(pmm_bitmap, 0, totalmem / PAGESIZE / 8);
 
     for (uint64_t i = 0; i < memmap->entries; i++) {
-        TRACE("-\t%#08x - %#08x: ",
+        LOG("-\t%#08x - %#08x: ",
                 entry[i].base,
                 entry[i].base + entry[i].length);
 
@@ -105,5 +105,5 @@ void init_mem(struct stivale2_struct_tag_memmap* memmap) {
         }
     }
 
-    TRACE("Detected %d MiB of usable memory\n", usable_mem / 1048576);
+    LOG("Detected %d MiB of usable memory\n", usable_mem / 1048576);
 }

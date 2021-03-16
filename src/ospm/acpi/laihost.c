@@ -14,7 +14,7 @@ void laihost_panic(const char* str) {
 void laihost_log(int level, const char* str) {
     switch (level) {
         case LAI_DEBUG_LOG:
-            TRACE("%s\n", str);
+            LOG("%s\n", str);
             break;
         case LAI_WARN_LOG:
             WARN("%s\n", str);

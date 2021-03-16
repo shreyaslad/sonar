@@ -108,7 +108,7 @@ uint32_t redirect_gsi(uint32_t gsi, uint64_t ap, uint8_t irq, uint64_t flags) {
 
     redirect_data |= ap << 56;
     uint32_t ret = set_redir_entry(gsi, redirect_data);
-    TRACE("Mapped GSI %u to IRQ %u on LAPIC %U\n", gsi, irq, ap);
+    LOG("Mapped GSI %u to IRQ %u on LAPIC %U\n", gsi, irq, ap);
 
     return ret;
 }
@@ -168,7 +168,7 @@ void init_apic() {
 
 void init_madt() {
     if ((madt = find_sdt("APIC", 0))) {
-        TRACE("APIC configuration:\n");
+        LOG("APIC configuration:\n");
 
         lapics = kmalloc(ACPI_MAX_TBL_CNT);
         ioapics = kmalloc(ACPI_MAX_TBL_CNT);
@@ -180,19 +180,19 @@ void init_madt() {
             madt_ptr += *(madt_ptr + 1)) {
                 switch (*(madt_ptr)) {
                     case 0:
-                        TRACE("-\tLAPIC #%u\n", lapic_cnt);
+                        LOG("-\tLAPIC #%u\n", lapic_cnt);
                         lapics[lapic_cnt++] = (struct madt_lapic_t *)madt_ptr;
                         break;
                     case 1:
-                        TRACE("-\tIOAPIC #%u\n", ioapic_cnt);
+                        LOG("-\tIOAPIC #%u\n", ioapic_cnt);
                         ioapics[ioapic_cnt++] = (struct ioapic_t *)madt_ptr;
                         break;
                     case 2:
-                        TRACE("-\tISO #%u\n", iso_cnt);
+                        LOG("-\tISO #%u\n", iso_cnt);
                         isos[iso_cnt++] = (struct madt_iso_t *)madt_ptr;
                         break;
                     case 4:
-                        TRACE("-\tNMI #%u\n", nmi_cnt);
+                        LOG("-\tNMI #%u\n", nmi_cnt);
                         nmis[nmi_cnt++] = (struct madt_nmi_t *)madt_ptr;
                         break;
                     default:

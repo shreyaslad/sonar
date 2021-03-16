@@ -35,7 +35,7 @@ void init_cpu() {
     snprintf(cpu->vendor_string, CPU_VENDOR_STR_LEN, "%.4s%.4s%.4s",
              &ebx, &edx, &ecx);
 
-    //TRACE("Vendor ID: %s\n", cpu->vendor_string);
+    //LOG("Vendor ID: %s\n", cpu->vendor_string);
 
     if (!strcmp(cpu->vendor_string, CPUID_VENDOR_INTEL)) {
         cpu->vendor = CPU_VENDOR_INTEL;

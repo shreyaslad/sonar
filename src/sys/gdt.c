@@ -5,17 +5,15 @@ uint64_t gdt[N_ENTRIES];
 size_t i = 0;
 
 void load_gdt(struct gdt_ptr_t* ptr) {
-    asm volatile("lgdt %0"
-                 :
-                 :"m"(*ptr)
-                 : "memory");
+    asm {
+        lgdt [rdi]
+    }
 }
 
 void store_gdt(struct gdt_ptr_t* ret) {
-    asm volatile("sgdt %0"
-                 : "=m"(*ret)
-                 :
-                 : "memory");
+    asm {
+        sgdt [rdi]
+    }
 }
 
 void set_gdt() {

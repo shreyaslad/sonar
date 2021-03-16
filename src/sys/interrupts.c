@@ -98,6 +98,8 @@ void isr_handler(struct regs_t* regs) {
             regs->rip,
             cr2);
 
+        liballoc_dump();
+
         stacktrace(regs->rbp);
         asm volatile("hlt");
     }
