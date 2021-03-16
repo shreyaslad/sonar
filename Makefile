@@ -194,15 +194,17 @@ sonar:
 	mkdir -p ${TEST_BUILD_DIR}/objects
 	mkdir ${SONAR_MNT_TARGET}
 	dd if=/dev/zero bs=1M count=0 seek=${SONAR_IMG_SIZE} of=${SONAR_IMG_TARGET}
-	parted -s ${SONAR_IMG_TARGET} mklabel msdos
-	parted -s ${SONAR_IMG_TARGET} mkpart primary 1 100%
+	parted -s ${SONAR_IMG_TARGET} mklabel gpt
+	parted -s ${SONAR_IMG_TARGET} mkpart EFI fat16 0 32M
+	parted -s ${SONAR_IMG_TARGET} mkpart kernel ext2 32M 100%
 
 	make sonar-kernel
 	make test-kernel
 
 	sudo losetup -Pf --show ${SONAR_IMG_TARGET} > ${SONAR_BUILD_DIR}/loopback_dev
-	sudo mkfs.ext2 `cat ${SONAR_BUILD_DIR}/loopback_dev`p1
-	sudo mount `cat ${SONAR_BUILD_DIR}/loopback_dev`p1 ${SONAR_MNT_TARGET}
+	sudo mkfs.msdos `cat ${SONAR_BUILD_DIR}/loopback_dev`p1 -F 16
+	sudo mkfs.ext2 `cat ${SONAR_BUILD_DIR}/loopback_dev`p2
+	sudo mount `cat ${SONAR_BUILD_DIR}/loopback_dev`p2 ${SONAR_MNT_TARGET}
 	sudo mkdir ${SONAR_MNT_TARGET}/boot/
 	sudo cp ${SONAR_KNL_TARGET} ${SONAR_MNT_TARGET}/boot/
 	sudo cp ${SRC_DIR}/boot/limine.cfg ${SONAR_MNT_TARGET}/boot/
