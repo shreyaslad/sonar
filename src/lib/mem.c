@@ -1,5 +1,7 @@
 #include <lib/mem.h>
 
+#define BYTES_TO_MIB(b) b / 1048576
+
 void* memset(void* s, int c, size_t n) {
     uint8_t* buf = (uint8_t*)s;
 
@@ -93,17 +95,20 @@ void init_mem(struct stivale2_struct_tag_memmap* memmap) {
                 printf("bad ram\n");
                 break;
             case STIVALE2_MMAP_BOOTLOADER_RECLAIMABLE:
-                printf("limine reclaimable\n");
+                printf("bootloader reclaimable\n");
                 break;
             case STIVALE2_MMAP_KERNEL_AND_MODULES:
                 printf("kernel/modules\n");
                 break;
         }
 
-        if (entry[i].type != STIVALE2_MMAP_USABLE) {
+        // If the entry type isn't usable or reclaimable, it cannot be allocated
+        if (entry[i].type != STIVALE2_MMAP_USABLE ||
+            entry[i].type != STIVALE2_MMAP_ACPI_RECLAIMABLE ||
+            entry[i].type != STIVALE2_MMAP_BOOTLOADER_RECLAIMABLE) {
             set_abs_bit(pmm_bitmap, entry[i].base / PAGESIZE);
         }
     }
 
-    LOG("Detected %d MiB of usable memory\n", usable_mem / 1048576);
+    LOG("Detected %d MiB of usable memory\n", BYTES_TO_MIB(usable_mem));
 }
