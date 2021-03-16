@@ -147,7 +147,7 @@ uint64_t vmread(uint64_t encoding) {
 
 void init_vmcs() {
     uint64_t* vmcs = (uint64_t *)((uint64_t)pmm_alloc(1) + HIGH_VMA);
-    TRACE("-\tVMCS region: %#lx\n", (uint64_t)vmcs);
+    LOG("-\tVMCS region: %#lx\n", (uint64_t)vmcs);
     
     memset((void *)vmcs, 0, PAGESIZE);
     
@@ -182,7 +182,7 @@ void init_vmcs() {
 
 void init_vmxon() {
     void* vmxon_region = pmm_alloc(1);
-    TRACE("-\tVMXON region: %#lx\n", (size_t)vmxon_region + HIGH_VMA);
+    LOG("-\tVMXON region: %#lx\n", (size_t)vmxon_region + HIGH_VMA);
     memset(vmxon_region + HIGH_VMA, 0, PAGESIZE);
 
     size_t control = rdmsr(MSR_IA32_FEATURE_CONTROL);
@@ -216,7 +216,7 @@ void init_vmxon() {
     uint32_t vmx_rev = rdmsr(MSR_IA32_VMX_BASIC);
     *(uint32_t *)vmxon_region = vmx_rev;
 
-    TRACE("-\tVMX rev: %u\n", vmx_rev);
+    LOG("-\tVMX rev: %u\n", vmx_rev);
 
     uint8_t success;
     asm volatile(
@@ -240,13 +240,19 @@ void detect_vmx() {
     __get_cpuid(1, &eax, &unused, &ecx, &unused);
 
     if (ecx & 1) {
-        TRACE("CPU supports VMX\n");
+        LOG("CPU supports VMX\n");
     } else {
         panic("CPU does not support VMX!");
     }
 }
 
 void init_vmx() {
+    asm {
+        mov rax, cr4
+        or rax, (1 << 13) ; set CR4.VMXE
+        mov cr4, rax
+    }
+
     detect_vmx();
 
     init_vmxon();
