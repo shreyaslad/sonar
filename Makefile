@@ -62,7 +62,7 @@ KERNEL_DIR			= ${BUILD_DIR}/kernels
 
 SONAR_BUILD_DIR		= ${KERNEL_DIR}/sonar
 SONAR_KNL_TARGET	= ${SONAR_BUILD_DIR}/ksonar.elf
-SONAR_IMG_TARGET	= ${SONAR_BUILD_DIR}/sonar.img
+SONAR_IMG_TARGET	= ${SONAR_BUILD_DIR}/sonar.iso
 SONAR_MNT_TARGET	= ${SONAR_BUILD_DIR}/sonar_image
 SONAR_IMG_SIZE		= 128
 
@@ -91,7 +91,7 @@ DEPS_DIR		= ${BUILD_DIR}/deps
 
 LIMINE_DIR		= ${DEPS_DIR}/limine
 LIMINE_REPO 	= https://github.com/limine-bootloader/limine
-LIMINE_BRANCH	= v1.0
+LIMINE_BRANCH	= v2.66.3
 
 BDDISASM_DIR	= ${DEPS_DIR}/bddisasm
 BDDISASM_REPO	= https://github.com/bitdefender/bddisasm
@@ -148,111 +148,42 @@ QFLAGS	=	\
 		-m			3G	\
 		-boot		menu=off	\
 		-smp		cpus=4	\
+		-cdrom $(SONAR_IMG_TARGET) \
 		-device 	ahci,id=ahci	\
-		-drive		if=none,id=disk,file=${SONAR_IMG_TARGET},format=raw	\
-		-device		intel-iommu,aw-bits=48	\
-		-device		qemu-xhci	\
-		-drive		id=foo,file=${SONAR_IMG_TARGET},format=raw,if=none	\
-		-device		usb-storage,drive=foo	\
-		#-numa		node,cpus=0,nodeid=0	\
-		#-numa		node,cpus=1,nodeid=1	\
-		#-numa		node,cpus=2,nodeid=2	\
-		#-numa		node,cpus=3,nodeid=3	\
+		-drive		if=none,id=disk,file=$(SONAR_IMG_TARGET),format=raw	\
+		#-device		intel-iommu,aw-bits=48	\
 
 QFLAGS_KVM =	\
 				-enable-kvm	\
-				-cpu		host,+vmx	\
-				-machine	q35	\
+				-cpu host,+vmx	\
+				-machine q35	\
 				
-
-LOG		= ${SONAR_BUILD_DIR}/qemu.log
-
-all: clean-sonar sonar run
-
-build: clean-sonar sonar
+all: dirs $(SONAR_IMG_TARGET)
 
 run:
-	${QEMU} ${QFLAGS} ${QFLAGS_KVM} -serial stdio | tee "${LOG}"
+	qemu-system-x86_64 $(QFLAGS) -nographic
 
-monitor:
-	${QEMU} ${QFLAGS} -d int -monitor stdio | tee "${LOG}"
+$(SONAR_IMG_TARGET): deps kernel
+	rm -rf $(SONAR_MNT_TARGET)
+	mkdir -p $(SONAR_MNT_TARGET)
+	
+	cp $(SONAR_KNL_TARGET) \
+		$(SRC_DIR)/boot/limine.cfg $(LIMINE_DIR)/limine.sys $(LIMINE_DIR)/limine-cd.bin \
+		$(LIMINE_DIR)/limine-eltorito-efi.bin $(SONAR_MNT_TARGET)/
+	
+	xorriso -as mkisofs -b limine-cd.bin \
+		-no-emul-boot -boot-load-size 4 -boot-info-table \
+		--efi-boot limine-eltorito-efi.bin \
+		-efi-boot-part --efi-boot-image --protective-msdos-label \
+		$(SONAR_MNT_TARGET) -o $(SONAR_IMG_TARGET)
+	
+	$(LIMINE_DIR)/limine-install $(SONAR_IMG_TARGET)
 
-debug:
-	${QEMU} ${QFLAGS} ${QFLAGS_KVM} -s -S -no-shutdown -no-reboot
-	${GDB} -ex "target remote localhost:1234" -ex "symbol-file ${SONAR_KNL_TARGET}"
+dirs:
+	mkdir -p $(SONAR_BUILD_DIR) $(DEPS_DIR)
 
-sonar:
-	if [ ! -d '${DEPS_DIR}' ]; then	\
-	make deps;	\
-	fi	\
-
-	if [ -d '${LAI_DIR}' ]; then \
-	mv ${LAI_DIR} ${LAI_COMPILE_DIR}; \
-	fi \
-
-	mkdir -p ${SONAR_BUILD_DIR}/objects
-	mkdir -p ${TEST_BUILD_DIR}/objects
-	mkdir ${SONAR_MNT_TARGET}
-	dd if=/dev/zero bs=1M count=0 seek=${SONAR_IMG_SIZE} of=${SONAR_IMG_TARGET}
-	parted -s ${SONAR_IMG_TARGET} mklabel gpt
-	parted -s ${SONAR_IMG_TARGET} mkpart EFI fat16 0 32M
-	parted -s ${SONAR_IMG_TARGET} mkpart kernel ext2 32M 100%
-
-	make sonar-kernel
-	make test-kernel
-
-	sudo losetup -Pf --show ${SONAR_IMG_TARGET} > ${SONAR_BUILD_DIR}/loopback_dev
-	sudo mkfs.msdos `cat ${SONAR_BUILD_DIR}/loopback_dev`p1 -F 16
-	sudo mkfs.ext2 `cat ${SONAR_BUILD_DIR}/loopback_dev`p2
-	sudo mount `cat ${SONAR_BUILD_DIR}/loopback_dev`p2 ${SONAR_MNT_TARGET}
-	sudo mkdir ${SONAR_MNT_TARGET}/boot/
-	sudo cp ${SONAR_KNL_TARGET} ${SONAR_MNT_TARGET}/boot/
-	sudo cp ${SRC_DIR}/boot/limine.cfg ${SONAR_MNT_TARGET}/boot/
-	sudo cp ${SRC_DIR}/boot/limine_background.bmp ${SONAR_MNT_TARGET}
-	sudo cp ${SONAR_KNL_TARGET} ${SONAR_MNT_TARGET}/boot/
-	sync
-	sudo umount ${SONAR_MNT_TARGET}
-	sudo losetup -d `cat ${SONAR_BUILD_DIR}/loopback_dev`
-
-	sudo ${LIMINE_DIR}/limine-install ${LIMINE_DIR}/limine.bin ${SONAR_IMG_TARGET}
-
-	mv ${LAI_COMPILE_DIR} ${LAI_DIR}
-
-	find ${SRC_DIR} -type f -name '*.o' -exec mv {} ${SONAR_BUILD_DIR}/objects \;
-	find ${TEST_DIR} -type f -name '*.o' -exec mv {} ${TEST_BUILD_DIR}/objects \;
-
-sonar-kernel:
-	make -C ${SRC_DIR} all
-
-test-kernel:
-	make -C ${TEST_DIR} all
+kernel:
+	make -C $(SRC_DIR)
 
 deps:
-	make -C ${BUILD_DIR}
-
-clean-all: clean-kernels clean-deps
-	find . -type f -name "*.o" -delete
-
-clean-sonar:
-	rm -rf ${SONAR_BUILD_DIR}
-	find ${SRC_DIR} -type f -name "*.o" -delete
-
-clean-test:
-	rm -rf ${TEST_BUILD_DIR}
-	find ${TEST_SRC_DIR} -type f -name "*.o" -delete
-
-clean-limine:
-	rm -rf ${LIMINE_DIR}
-
-clean-bddisasm:
-	rm -rf ${BDDISASM_DIR}
-
-clean-lai:
-	rm -rf ${LAI_COMPILE_DIR} ${LAI_DIR}
-	rm -rf ${LAI_HEADER_DIR}/acpispec ${LAI_HEADER_DIR}/lai
-
-clean-kernels:
-	rm -rf ${KERNEL_DIR}
-
-clean-deps: clean-limine clean-bddisasm clean-lai
-	make -C ${BUILD_DIR} clean
+	make -C $(BUILD_DIR)	

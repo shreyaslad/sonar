@@ -5,7 +5,6 @@
 #include <protos/stivale2.h>
 #include <drivers/display/serial.h>
 #include <drivers/display/vesa.h>
-#include <virt/intel/vmx/vmx.h>
 #include <ospm/ospm.h>
 #include <sys/gdt.h>
 #include <sys/idt.h>
@@ -54,7 +53,6 @@ void sonar_main(struct stivale2_struct* info) {
 
     init_cpu();
     init_ospm(rsdp_tag, smp_tag);
-    init_vmx();
 
     printf("\n");
     LOG("Sonar\n");
