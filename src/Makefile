@@ -1,34 +1,51 @@
 default: all
+.PHONY: all
 
-.PHONY:	all		\
-		symlist	\
+CFLAGS = \
+	-target ${ARCH}-unknown-none \
+	-std=c11 \
+	-ffreestanding \
+	-Wall \
+	-Wextra \
+	-fno-stack-protector \
+	-fno-stack-check \
+	-fno-lto \
+	-fno-pie \
+	-fno-pic \
+	-m64 \
+	-mno-mmx \
+	-mno-sse \
+	-mno-sse2 \
+	-mno-red-zone \
+	-mcmodel=kernel \
+	-I.
 
-C_SOURCES	= $(shell find . -type f -name '*.c')
-H_SOURCES	= $(shell find . -type f -name '*.h')
-ASM_SOURCES	= $(shell find . -type f -name '*.asm')
+LDFLAGS = \
+	-O2 \
+	-ffreestanding \
+	-nostdlib \
+	-no-pie \
+	-z max-page-size=0x1000 \
+	-T linker.ld
 
-OBJ			= ${C_SOURCES:.c=.o} ${ASM_SOURCES:.asm=.o}
+ASMFLAGS = \
+	-f elf64 \
+	-f dwarf \
+	-g
 
-CFLAGS		+=							\
-			-I.							\
-			-Ilib						\
-			-Ithirdparty/lai/include	\
+C_SOURCES = $(shell find . -type f -name '*.c')
+H_SOURCES = $(shell find . -type f -name '*.h')
+ASM_SOURCES = $(shell find . -type f -name '*.asm')
 
-all: ${SONAR_KNL_TARGET}
+OBJ = ${C_SOURCES:.c=.o} ${ASM_SOURCES:.asm=.o}
 
-${SONAR_KNL_TARGET}: ${OBJ} symlist
-	${LD} ${LDFLAGS} ${OBJ} sys/symlist.o -o $@
-	sh gensyms.sh
-	${CC} -x c ${CFLAGS} -c sys/symlist.gen -o sys/symlist.o
-	${LD} ${LDFLAGS} ${OBJ} sys/symlist.o -o $@
+all: ${SONAR_KERNEL_TARGET}
 
-symlist:
-	echo '#include <sys/symlist.h>' > sys/symlist.gen
-	echo 'struct symlist_t symlist[] = {{0xffffffffffffffff,""}};' >> sys/symlist.gen
-	${CC} -x c ${CFLAGS} -c sys/symlist.gen -o sys/symlist.o
+${SONAR_KERNEL_TARGET}: ${OBJ}
+	${LD} ${LDFLAGS} ${OBJ} -o $@
 
 %.o: %.c
 	${CC} ${CFLAGS} -c $< -o $@
 
 %.o: %.asm
-	nasm -f elf64 -F dwarf -g -o $@ $<
+	${AS} ${ASMFLAGS} -o $@ $<

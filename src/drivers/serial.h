@@ -1,5 +1,5 @@
-#ifndef __DRIVERS__SERIAL_H__
-#define __DRIVERS__SERIAL_H__
+#ifndef SERIAL_H
+#define SERIAL_H
 
 #include <sys/ports.h>
 

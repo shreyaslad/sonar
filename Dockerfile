@@ -1,15 +1,19 @@
 FROM amd64/ubuntu:latest
 
-RUN apt update -y && apt install -y \
+RUN apt-get update
+RUN apt-get install -y \
     clang \
+    lld \
     nasm \
     gcc \
     g++ \
     make \
-    lld \
-    git
+    git \
+    xorriso
 
-COPY . /sonar
+ADD . /sonar
 WORKDIR /sonar
 
-CMD ["make"]
+ENV DOCKER_BUILD=1
+
+CMD ["make", "sonar"]

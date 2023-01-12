@@ -1,21 +1,14 @@
-#ifndef __MM__VMM_H__
-#define __MM__VMM_H__
+#ifndef VMM_H
+#define VMM_H
 
-#include <stdint.h>
-#include <stddef.h>
-#include <io.h>
-#include <mem.h>
-#include <mm/pmm.h>
-#include <str.h>
+#define RMFLAGS         0x000ffffffffff000
+#define GETFLAGS        ~RMFLAGS
+#define MAP_TABLEPRESENT    (1 << 0)
+#define MAP_TABLEWRITE      (1 << 1)
+#define MAP_TABLEUSER       (1 << 2)
+#define MAP_TABLEHUGE       (1 << 7)
 
-uint64_t* get_pml4();
-void set_pml4(uint64_t pml4);
-void invlpg(uint64_t* vaddr);
-void tlbflush();
-
-void vmm_map(uint64_t* vaddr, uint64_t* paddr, uint64_t* pml4ptr, uint64_t permission);
-void vmm_unmap(uint64_t* vaddr, size_t pages);
-
-void test();
+#define MAP_SUPERVISOR  0
+#define MAP_USER        1
 
 #endif

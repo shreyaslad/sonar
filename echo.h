@@ -1,5 +1,5 @@
-#ifndef __ECHO_H__
-#define __ECHO_H__
+#ifndef ECHO_H
+#define ECHO_H
 
 #include <stdint.h>
 

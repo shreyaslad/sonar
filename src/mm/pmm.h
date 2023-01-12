@@ -1,18 +1,20 @@
-#ifndef __MM__PMM_H__
-#define __MM__PMM_H__
+#ifndef PMM_H
+#define PMM_H
+
+#undef __MODULE__
+#define __MODULE__ "pmm"
 
 #include <stdint.h>
 #include <stddef.h>
-#include <io.h>
-#include <bit.h>
-#include <lib/mem.h>
+#include <protos/limine.h>
 
-extern uint64_t totalmem;
-extern volatile uint64_t* pmm_bitmap;
+#include <mm/common.h>
+#include <lib/string.h>
+#include <lib/bitmap.h>
 
-/* Physical Memory Allocation */
-void* pmm_alloc(size_t pages);
-void pmm_free(void* ptr, size_t pages);
-void* pmm_realloc(void* ptr, size_t old, size_t new);
+size_t get_total_mem();
+size_t get_usable_mem();
+
+void init_pmm(struct limine_memmap_response* mmap);
 
 #endif

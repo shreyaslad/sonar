@@ -1,36 +1,53 @@
-ENTRY(sonar_main)
-
+/* Tell the linker that we want an x86_64 ELF64 output file */
 OUTPUT_FORMAT(elf64-x86-64)
+OUTPUT_ARCH(i386:x86-64)
 
-KNL_HIGH_VMA = 0xFFFFFFFF80000000;
+/* We want the symbol _start to be our entry point */
+ENTRY(_start)
+
+/* Define the program headers we want so the bootloader gives us the right */
+/* MMU permissions */
+PHDRS
+{
+    text    PT_LOAD    FLAGS((1 << 0) | (1 << 2)) ; /* Execute + Read */
+    rodata  PT_LOAD    FLAGS((1 << 2)) ;            /* Read only */
+    data    PT_LOAD    FLAGS((1 << 1) | (1 << 2)) ; /* Write + Read */
+}
 
 SECTIONS
 {
-    . = KNL_HIGH_VMA + 0x100000;
+    /* We wanna be placed in the topmost 2GiB of the address space, for optimisations */
+    /* and because that is what the Limine spec mandates. */
+    /* Any address in this region will do, but often 0xffffffff80000000 is chosen as */
+    /* that is the beginning of the region. */
+    . = 0xffffffff80000000;
 
-    __kernel_start = ALIGN(4K);
+    .text : {
+        *(.text .text.*)
+    } :text
 
-    .stivalehdr : ALIGN(4K) {
-        KEEP(*(.stivalehdr))
-    }
+    /* Move to the next memory page for .rodata */
+    . += CONSTANT(MAXPAGESIZE);
 
-    __kernel_code_start = ALIGN(4K);
-    .text : ALIGN(4K) {
-        *(.text*)
-    }
-    __kernel_code_end = ALIGN(4K);
+    .rodata : {
+        *(.rodata .rodata.*)
+    } :rodata
 
-    .rodata : ALIGN(4K) {
-        *(.rodata*)
-    }
+    /* Move to the next memory page for .data */
+    . += CONSTANT(MAXPAGESIZE);
 
-    .data : ALIGN(4K) {
-        *(.data*)
-    }
+    .data : {
+        *(.data .data.*)
+    } :data
 
-    .bss : ALIGN(4K) {
-        *(.bss*)
+    .bss : {
         *(COMMON)
+        *(.bss .bss.*)
+    } :data
+
+    /* Discard .note.* and .eh_frame since they may cause issues on some hosts. */
+    /DISCARD/ : {
+        *(.eh_frame)
+        *(.note .note.*)
     }
-    __kernel_end = ALIGN(4K);
 }

@@ -1,70 +1,100 @@
 #include <mm/pmm.h>
 
-extern uint64_t __kernel_end;
-volatile uint64_t* pmm_bitmap = (uint64_t *)&__kernel_end;
+static volatile struct bitmap pmm_bitmap = {
+    .bitmap = NULL,
+    .len = 0
+};
 
-uint64_t totalmem;
-uint64_t bitmapEntries;
+static size_t total_mem; // In bytes
+static size_t usable_mem; // In bytes
 
-void* pmm_alloc(size_t pages) {
-    uint64_t first_bit = 0;
-    uint64_t concurrent_bits = 0;
-    uint64_t total_bits_in_bitmap = totalmem / PAGESIZE;
+size_t get_total_mem() {
+    return total_mem;
+}
 
-    for (uint64_t i = 1; i < total_bits_in_bitmap; i++) {
+size_t get_usable_mem() {
+    return usable_mem;
+}
 
-        if (get_abs_bit(pmm_bitmap, i) == 0) {
-            if (concurrent_bits == 0) {
-                first_bit = i;
-            }
+int pmm_free(void* ptr, size_t n) {
+    uint64_t page = (uint64_t)ptr / PAGE_SIZE;
 
-            concurrent_bits++;
+    bitmap_free(&pmm_bitmap, page, n);
 
-            if (pages == concurrent_bits) {
-                goto alloc;
-            }
+    return 1;
+}
+
+void* pmm_alloc(size_t n) {
+    uint64_t free_block = find_free_block(&pmm_bitmap, n);
+    bitmap_alloc(&pmm_bitmap, free_block, n);
+
+    return (void *)free_block;
+}
+
+void* pmm_realloc(void* ptr, size_t old_size, size_t new_size) {
+   void* ret = pmm_alloc(new_size);
+
+   memcpy(ret, ptr, old_size * PAGE_SIZE);
+   pmm_free(ptr, old_size);
+
+   return ret;
+}
+
+void init_pmm(struct limine_memmap_response* mmap) {
+    /**
+     * 1. Loop through mmap, find total amount of memory
+     * 2. Calculate bitmap size
+     * 3. Find available portion to hold bitmap
+     * 4. Set bitmap to that location
+     * 5. Mark bitmap & unusuable entries as allocated
+     */
+
+    // 1st Pass: Find total memory
+    for (uint64_t i = 0; i < mmap->entry_count; i++) {
+        struct limine_memmap_entry* cur_entry = mmap->entries[i];
+
+        total_mem += cur_entry->length;
+    }
+
+    pmm_bitmap.len = total_mem / PAGE_SIZE / sizeof(uint64_t);
+
+    // 2nd Pass: Find suitable region of available memory,
+    //  & set bitmap there
+    for (uint64_t i = 0; i < mmap->entry_count; i++) {
+        struct limine_memmap_entry* cur_entry = mmap->entries[i];
+
+        if (cur_entry->type == LIMINE_MEMMAP_USABLE
+         && cur_entry->length > pmm_bitmap.len * PAGE_SIZE) {
+            pmm_bitmap.bitmap = (uint64_t *)(cur_entry->base);
+
+            break;
+        }
+    }
+
+    memset(pmm_bitmap.bitmap, 0, pmm_bitmap.len * sizeof(uint64_t));
+
+    // 3rd Pass: Mark unusable memory as allocated
+    for (uint64_t i = 0; i < mmap->entry_count; i++) {
+        struct limine_memmap_entry* cur_entry = mmap->entries[i];
+
+        if (cur_entry->type != LIMINE_MEMMAP_USABLE
+         || cur_entry->type != LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE
+         || cur_entry->type != LIMINE_MEMMAP_ACPI_RECLAIMABLE) {
+
+            uint64_t current_page = cur_entry->base / PAGE_SIZE;
+            size_t unusable_page_span = cur_entry->length / PAGE_SIZE;
+
+            bitmap_alloc(&pmm_bitmap, current_page, unusable_page_span);
         } else {
-            first_bit = 0;
-            concurrent_bits = 0;
+            // Keep track of usable memory
 
-            continue;
+            usable_mem += cur_entry->length;
         }
     }
 
-    return NULL;
+    // 4th Pass: Mark bitmap as allocated
+    uint64_t bitmap_page = (uint64_t)(pmm_bitmap.bitmap) / PAGE_SIZE;
+    size_t bitmap_page_span = (pmm_bitmap.len * sizeof(uint64_t)) / PAGE_SIZE;
 
-alloc:
-    // iterate over bits now that a block has been found
-    for (uint64_t i = first_bit; i < first_bit + pages; i++) {
-        set_abs_bit(pmm_bitmap, i);
-    }
-    return (void *)(first_bit * PAGESIZE);
-}
-
-void pmm_free(void* ptr, size_t pages) {
-    uint64_t first_bit = (uint64_t)(ptr - HIGH_VMA) / PAGESIZE;
-    uint64_t total_bits_in_bitmap = totalmem / PAGESIZE;
-
-    for (uint64_t i = 0; i < total_bits_in_bitmap; i++) {
-        if (i == first_bit) {
-            for (uint64_t j = 0; j < pages; j++) {
-                cls_abs_bit(pmm_bitmap, j);
-            }
-            goto done;
-        }
-    }
-
-done:
-    return;
-}
-
-void* pmm_realloc(void* ptr, size_t old, size_t new) {
-    if (new < PAGESIZE)
-        return ptr;
-
-    uint64_t* new_buffer = (uint64_t*)pmm_alloc(new);
-    memcpy(new_buffer, ptr, old);
-    pmm_free(ptr, old);
-
-    return new_buffer;
+    bitmap_alloc(&pmm_bitmap, bitmap_page, bitmap_page_span);
 }

@@ -1,10 +1,5 @@
-**/*.o
-src/sys/symlist.gen
-.vscode-ctags
+.DS_Store
 .vscode
-.idea
-src/thirdparty
-src/ospm/acpi/lai
-src/ospm/acpi/acpispec
-build/deps
-build/kernels
+
+build/*
+*.o
