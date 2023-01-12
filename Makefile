@@ -4,6 +4,7 @@ default: all
 	all \
 	build \
 	run \
+	debug \
 	sonar \
 	kernel \
 	clean \
@@ -46,8 +47,8 @@ export \
 
 DIR = $(shell readlink -f .)
 
-BOOT_DIR = ${DIR}/boot
 SRC_DIR = ${DIR}/src
+BOOT_DIR = ${SRC_DIR}/boot
 BUILD_DIR = ${DIR}/build
 
 ################
@@ -80,7 +81,10 @@ build:
 		$(shell docker build -q . || echo "Build failed")
 
 run:
-	qemu-system-${ARCH} ${QFLAGS}
+	qemu-system-${ARCH} ${QFLAGS} -serial stdio
+
+debug:
+	qemu-system-${ARCH} ${QFLAGS} -no-reboot -d int
 
 #################
 # Raw ISO Build #

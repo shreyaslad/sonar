@@ -2,8 +2,13 @@
 #include <stddef.h>
 #include <protos/limine.h>
 
+#include <lib/log.h>
+
 #include <drivers/serial.h>
-#include <mm/pmm.h>
+#include <mm/mem.h>
+
+#undef __MODULE__
+#define __MODULE__ "kernel"
 
 static volatile struct limine_memmap_request mmap_request = {
     .id = LIMINE_MEMMAP_REQUEST,
@@ -29,7 +34,9 @@ __attribute__((noreturn))
 void _start(void) {
     init_serial();
 
-    init_pmm(mmap_request.response);
+    LOG("Initialized early logging\n");
+
+    init_mem(mmap_request.response);
 
     for (;;) {
         __asm__("hlt");

@@ -2,6 +2,7 @@
 #define SERIAL_H
 
 #include <sys/ports.h>
+#include <lib/log.h>
 
 void serial_write(char c);
 

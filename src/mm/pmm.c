@@ -49,6 +49,8 @@ void init_pmm(struct limine_memmap_response* mmap) {
      * 5. Mark bitmap & unusuable entries as allocated
      */
 
+    LOG("Initializing PMM\n");
+
     // 1st Pass: Find total memory
     for (uint64_t i = 0; i < mmap->entry_count; i++) {
         struct limine_memmap_entry* cur_entry = mmap->entries[i];
@@ -57,6 +59,7 @@ void init_pmm(struct limine_memmap_response* mmap) {
     }
 
     pmm_bitmap.len = total_mem / PAGE_SIZE / sizeof(uint64_t);
+    LOG("\tBitmap entries: %lu\n", pmm_bitmap.len);
 
     // 2nd Pass: Find suitable region of available memory,
     //  & set bitmap there
@@ -71,16 +74,21 @@ void init_pmm(struct limine_memmap_response* mmap) {
         }
     }
 
+    LOG("\tBitmap: %#lx - %#lx\n", 
+        pmm_bitmap.bitmap,
+        pmm_bitmap.len * sizeof(uint64_t)
+    );
+
     memset(pmm_bitmap.bitmap, 0, pmm_bitmap.len * sizeof(uint64_t));
 
     // 3rd Pass: Mark unusable memory as allocated
     for (uint64_t i = 0; i < mmap->entry_count; i++) {
         struct limine_memmap_entry* cur_entry = mmap->entries[i];
 
-        if (cur_entry->type != LIMINE_MEMMAP_USABLE
-         || cur_entry->type != LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE
-         || cur_entry->type != LIMINE_MEMMAP_ACPI_RECLAIMABLE) {
-
+        // NOTE: Bootloader reclaimable memory includes limine page tables
+        // It can be used in the future, just not at this stage
+        if (cur_entry->type != LIMINE_MEMMAP_USABLE) {
+            
             uint64_t current_page = cur_entry->base / PAGE_SIZE;
             size_t unusable_page_span = cur_entry->length / PAGE_SIZE;
 
@@ -97,4 +105,6 @@ void init_pmm(struct limine_memmap_response* mmap) {
     size_t bitmap_page_span = (pmm_bitmap.len * sizeof(uint64_t)) / PAGE_SIZE;
 
     bitmap_alloc(&pmm_bitmap, bitmap_page, bitmap_page_span);
+
+    LOG("Finished initializing PMM\n");
 }

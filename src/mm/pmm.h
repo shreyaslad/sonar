@@ -9,6 +9,8 @@
 #include <protos/limine.h>
 
 #include <mm/common.h>
+
+#include <lib/log.h>
 #include <lib/string.h>
 #include <lib/bitmap.h>
 
