@@ -63,7 +63,8 @@ uint64_t find_free_block(struct bitmap* bitmap, size_t n) {
     }
 
     // TODO: Panic if no free blocks found
-    if (!block_found);
+    if (!block_found)
+        ;;
 
     return start_pos;
 }

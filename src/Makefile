@@ -3,7 +3,7 @@ default: all
 
 CFLAGS = \
 	-target ${ARCH}-unknown-none \
-	-std=c11 \
+	-std=gnu99 \
 	-ffreestanding \
 	-Wall \
 	-Wextra \

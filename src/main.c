@@ -36,7 +36,7 @@ void _start(void) {
 
     LOG("Initialized early logging\n");
 
-    init_mem(mmap_request.response);
+    init_mem(mmap_request.response, hhdm_request.response);
 
     for (;;) {
         __asm__("hlt");
